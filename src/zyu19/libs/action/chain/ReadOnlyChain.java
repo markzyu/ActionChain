@@ -41,10 +41,10 @@ class ReadOnlyChain implements ErrorHolder {
 	private final ThreadPolicy mThreadPolicy;
 
 	/**
-	 * 
-	 * @param actionSequence
-	 * @param onSuccess
-	 * @param threadPolicy
+	 * Constructor of ReadOnlyChain.
+	 * @param actionSequence The array of action configurations to execute. The constructor will make a copy of this array.
+	 * @param onSuccess The callback to notify when all actions finished without Exception.
+	 * @param threadPolicy For the usages of this object, please refer to the javadoc of threadPolicy. 
 	 */
 	public ReadOnlyChain(ArrayList<ChainLink<?,?>> actionSequence, Consumer<?> onSuccess, ThreadPolicy threadPolicy) {
 		mActionSequence = new ArrayList<ChainLink<?,?>>(actionSequence);

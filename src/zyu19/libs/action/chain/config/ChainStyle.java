@@ -14,7 +14,7 @@ package zyu19.libs.action.chain.config;
  */
 public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	/**
-	 *  Start running the 'PureAction' objects in FakePromise.
+	 *  Start running the 'PureAction' objects in ChainStyle.
 	 *  <p>
 	 *  Your actions will be copied to another object so that
 	 *  you can call clear() immediately after start().
@@ -42,23 +42,32 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	ThisType fail(Consumer<ErrorHolder> onFailure);
 	
 	/**
-	 * Add a 'PureAction' object, or an "action", in this FakePromise.
-	 * @param runOnWorkerThread If set to false, the action will run on the main thread (UI thread)
+	 * Add a 'PureAction' object, or an "action", in this ChainStyle.
+	 * @param runOnWorkerThread if set to false, the action will run on the main thread (UI thread)
 	 * specified by ThreadChanger. Otherwise the task will run on any other thread (worker thread).
+	 * @param action the PureAction to be added.
+	 * @param <In> The input type of this action. Retrolambda will want to set this template parameter.
+	 * @param <Out> The output type of this action. Retrolambda will want to set this template parameter.
 	 * @return this object, thus enabling method chaining.
 	 */
 	<In, Out> ThisType then(boolean runOnWorkerThread, PureAction<In, Out> action);
 
 	
 	/**
-	 * Add a 'PureAction' object, or an "action", in this FakePromise on the <strong>worker</strong> thread.
+	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>worker</strong> thread.
+	 * @param action the PureAction to be added.
+	 * @param <In> The input type of this action. Retrolambda will want to set this template parameter.
+	 * @param <Out> The output type of this action. Retrolambda will want to set this template parameter.
 	 * @return this object, thus enabling method chaining.
 	 */
 	<In, Out> ThisType netThen(PureAction<In, Out> action);
 
 
 	/**
-	 * Add a 'PureAction' object, or an "action", in this FakePromise on the <strong>main (UI)</strong> thread.
+	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>main (UI)</strong> thread.
+	 * @param action the PureAction to be added.
+	 * @param <In> The input type of this action. Retrolambda will want to set this template parameter.
+	 * @param <Out> The output type of this action. Retrolambda will want to set this template parameter.
 	 * @return this object, thus enabling method chaining.
 	 */
 	<In, Out> ThisType uiThen(PureAction<In, Out> action);

@@ -26,7 +26,6 @@ package zyu19.libs.action.chain.config;
  * the app developer must retry the process either by starting from uploading the picture, or by
  * maintaining a variable to represent which parts of the task have been accomplished. Thus ErrorHolder
  * may help the developer save the user's time and data plan.    
- * <p>
  * <h1>NOTE:</h1>
  * <p>
  * In order to retry any task in any ActionChain, the user must call ErrorHolder.retry()
@@ -36,7 +35,6 @@ package zyu19.libs.action.chain.config;
  * by ThreadChanger.
  * <p>
  * BY DEFAULT, if the user code doesn't call ErrorHolder at all, the halted process will be DISCARDED.
- * <p>
  * <h1>WARNING:</h1>
  * <p>
  * It should be avoided to pass ErrorHolder to threads other than the
