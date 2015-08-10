@@ -2,35 +2,42 @@ package zyu19.libs.action.chain;
 
 import java.util.ArrayList;
 
-import zyu19.libs.action.chain.config.ActionConfig;
 import zyu19.libs.action.chain.config.Consumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
-import zyu19.libs.action.chain.config.FakePromise;
+import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.PureAction;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
-public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?>> implements ErrorHolder, FakePromise<ThisType> {
-
-	//------------- public functions (ErrorHolder Interface) ----------------
-
-	private Exception mCause;
-
-	@Override
-	public final Exception getCause() {
-		return mCause;
-	}
-
-	@Override
-	public final void retry() {
-		iterate();
-	}
+/**
+ * For usages of any implementation of this class, please refer to javadoc of ChainStyle and ErrorHolder.
+ * <p>
+ * Users of this library can extends this class to build their own versions of ActionChain.
+ * <p>
+ * This class contains every piece of fundamental code. Actually the ActionChain class is
+ * just an empty shell that "extends AbstractActionChain&lt;ActionChain&gt;".
+ * @author Zhongzhi Yu
+ *
+ * @param <ThisType> The non-abstract Class that eventually extends this Abstract Class.
+ * This parameter is required in order to provide method chaining.
+ *  
+ * @see ActionChain 
+ * 
+ * @version 0.1
+ */
+public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?>> implements ChainStyle<ThisType> {
 
 	//------------- public functions (FakePromise Interface) ----------------
 
 	@Override
-	public final ThisType start() {
-		clearIterationState();
-		iterate();
+	public final ThisType start(Consumer<?> onSuccess) {
+		new ReadOnlyChain(mActionSequence, onSuccess, mThreadPolicy).start();
+		return (ThisType)this;
+	}
+	
+	@Override
+	public ThisType clear(Consumer<ErrorHolder> onFailure) {
+		mCurrentOnFailure = onFailure;
+		mActionSequence.clear();
 		return (ThisType)this;
 	}
 
@@ -42,111 +49,34 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 
 	@Override
 	public <In, Out> ThisType then(boolean runOnWorkerThread, PureAction<In, Out> action) {
-		mActionSequence.add(new ActionConfig(action, mCurrentOnFailure, runOnWorkerThread));
+		mActionSequence.add(new ChainLink<In,Out>(action, mCurrentOnFailure, runOnWorkerThread));
 		return (ThisType)this;
 	}
 
 	@Override
 	public final <In, Out> ThisType netThen(PureAction<In, Out> action) {
-		mActionSequence.add(new ActionConfig(action, mCurrentOnFailure, true));
+		mActionSequence.add(new ChainLink<In,Out>(action, mCurrentOnFailure, true));
 		return (ThisType)this;
 	}
 
 	@Override
 	public final <In, Out> ThisType uiThen(PureAction<In, Out> action) {
-		mActionSequence.add(new ActionConfig(action, mCurrentOnFailure, false));
+		mActionSequence.add(new ChainLink<In,Out>(action, mCurrentOnFailure, false));
 		return (ThisType)this;
 	}
 
 	//------------- Constructors ----------------
 
-	private final Consumer mOnSuccess;
 	private Consumer<ErrorHolder> mCurrentOnFailure;
-
-	private ArrayList<ActionConfig> mActionSequence = new ArrayList<>();
-
+	private ArrayList<ChainLink<?,?>> mActionSequence = new ArrayList<>();
 	protected final ThreadPolicy mThreadPolicy;
-	public AbstractActionChain(ThreadPolicy threadPolicy, Consumer<?> onSuccess) {
+	
+	public AbstractActionChain(ThreadPolicy threadPolicy) {
 		mThreadPolicy = threadPolicy;
-		mOnSuccess = onSuccess;
 	}
 
-	public AbstractActionChain(ThreadPolicy threadPolicy, Consumer<?> onSuccess, Consumer<ErrorHolder> onFailure) {
+	public AbstractActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
 		mThreadPolicy = threadPolicy;
-		mOnSuccess = onSuccess;
 		mCurrentOnFailure = onFailure;
-	}
-
-	//------------------------ [Private] Iteration State -------------------------------
-
-	private int mNextAction;
-	private Object mLastActionOutput;
-	private boolean isOnSuccessCalled;
-
-	private final void clearIterationState() {
-		mNextAction = 0;
-		mLastActionOutput = null;
-		isOnSuccessCalled = false;
-	}
-
-	private final boolean isIterationOver() {
-		if (isOnSuccessCalled)
-			return true;
-		else if (mNextAction >= mActionSequence.size()) {
-			mThreadPolicy.switchAndRun(mOnSuccess, mLastActionOutput);
-			isOnSuccessCalled = true;
-			return true;
-		} else return false;
-	}
-
-	//------------------------ [Private] iterate and iterator ---------------------------
-	private final Consumer<ThreadPolicy> mIterator = new Consumer<ThreadPolicy>() {
-		public void consume(ThreadPolicy threadPolicy) {
-			synchronized (AbstractActionChain.this) {
-				if (isIterationOver())
-					return;
-				ActionConfig action = mActionSequence.get(mNextAction);
-				try {
-					mLastActionOutput = action.pureAction.process(mLastActionOutput);
-				} catch (Exception err) {
-					mCause = err;
-					threadPolicy.switchAndRun(action.errorHandler, AbstractActionChain.this);
-					return;
-				}
-				mNextAction++;
-				iterate();
-			}
-		}
-	};
-
-	private final void iterate() {
-		synchronized (this) {
-			if (isIterationOver())
-				return;
-			ActionConfig action = mActionSequence.get(mNextAction);
-			callIteratorOnProperThread(action);
-		}
-	}
-
-	//------------------------ policy ----------------------------
-
-
-	/**
-	 * This function decides which thread mIterator should run on. <br>
-	 * Note: onSuccess and onFailure will always run on the thread selected by ThreadChanger, regardless
-	 * of this function's configuration.
-	 *
-	 * @param task         the runnable to run. Directly run it on a proper thread.
-	 * @param actionConfig the actionConfig you defined, which contains your customized clues.
-	 */
-	protected void callIteratorOnProperThread(ActionConfig actionConfig) {
-		if (actionConfig.runOnWorkerThread)
-			mThreadPolicy.runWorker(new Runnable() {
-				@Override
-				public void run() {
-					mIterator.consume(mThreadPolicy);
-				}
-			});
-		else mThreadPolicy.switchAndRun(mIterator, mThreadPolicy);
 	}
 }

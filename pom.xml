@@ -3,11 +3,30 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>zyu19.libs.action.chain</groupId>
 	<artifactId>action-chain</artifactId>
-	<version>0.1</version>
+	<version>0.2</version>
 	<name>Smart Action Chain</name>
 	<description>This is a Java library that:
   1. Run different actions on either main/ui thread, or a worker thread, determined by the user.
   2. Avoid callback hell and help you write code in a chain style, similar to promise-then.</description>
+	<url>https://github.com/C4Phone/SmartActionChain</url>
+	<licenses>
+		<license>
+			<name>Revised BSD License</name>
+			<url>https://github.com/C4Phone/SmartActionChain/blob/master/LICENSE</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Zhongzhi Yu</name>
+			<email>qq2900726136@gmail.com</email>
+			<url>https://github.com/C4Phone</url>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git@github.com:C4Phone/SmartActionChain.git</connection>
+		<developerConnection>scm:git:git@github.com:C4Phone/SmartActionChain.git</developerConnection>
+		<url>git@github.com:C4Phone/SmartActionChain.git</url>
+	</scm>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -21,6 +40,42 @@
 			</resource>
 		</resources>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<encoding>
+						GBK
+					</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<encoding>
+						GBK
+					</encoding>
+				</configuration>
+			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
