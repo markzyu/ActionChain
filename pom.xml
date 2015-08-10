@@ -37,6 +37,8 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<testSourceDirectory>${basedir}/tests/</testSourceDirectory>
+		<testOutputDirectory>${project.build.directory}/test-classes/</testOutputDirectory>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
@@ -54,12 +56,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18.1</version>
-                <configuration>
-                    <testSourceDirectory>${basedir}/tests/java/</testSourceDirectory>
-                    <testClassesDirectory>${project.build.directory}/test-classes/</testClassesDirectory>
-                </configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -101,10 +99,14 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
+				<executions>
+				</executions>
 				<configuration>
 					<encoding>
 						GBK
 					</encoding>
+					<testSource>1.8</testSource>
+					<testTarget>1.8</testTarget>
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
