@@ -52,6 +52,9 @@ class ReadOnlyChain implements ErrorHolder {
 		mOnSuccess = onSuccess;
 	}
 
+	/** This function must be called within a <strong>synchronzied</strong> block!!!
+	 * @return true if this ReadOnlyChain has reached its end and should exit.
+	 */
 	private final boolean isIterationOver() {
 		if (isOnSuccessCalled)
 			return true;

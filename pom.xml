@@ -55,8 +55,6 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18.1</version>
                 <configuration>
-					<source>1.8</source>
-					<target>1.8</target>
                     <testSourceDirectory>${basedir}/tests/java/</testSourceDirectory>
                     <testClassesDirectory>${project.build.directory}/test-classes/</testClassesDirectory>
                 </configuration>
