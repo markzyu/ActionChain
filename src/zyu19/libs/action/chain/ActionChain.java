@@ -2,6 +2,7 @@ package zyu19.libs.action.chain;
 
 import zyu19.libs.action.chain.config.Consumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
+import zyu19.libs.action.chain.config.ChainEditor;
 import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
@@ -33,6 +34,11 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 	
 	public ActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
 		super(threadPolicy, onFailure);
+	}
+	
+	public ActionChain use(ChainEditor editor) {
+		editor.edit(this);
+		return this;
 	}
 	
 }
