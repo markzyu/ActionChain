@@ -105,8 +105,8 @@
 					<encoding>
 						GBK
 					</encoding>
-					<testSource>1.8</testSource>
-					<testTarget>1.8</testTarget>
+					<testSource>1.7</testSource>
+					<testTarget>1.7</testTarget>
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>

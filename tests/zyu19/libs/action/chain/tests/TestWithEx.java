@@ -119,7 +119,7 @@ public class TestWithEx {
 			
 		}
 		
-		PureAction<Object, Object> throwerAction = new PureAction<Object, Object>() {
+		class ThrowerAction implements PureAction<Object, Object> {
 			boolean hasThrownOnce = false;
 			public Object process(Object input) throws Exception {
 				if(!hasThrownOnce) {
@@ -140,17 +140,19 @@ public class TestWithEx {
 		
 		String correctAns = "";
 		int temp;
+		boolean endWithException = false;
 		
 		for (int i = 0; i < 100; i++) {
 			if(random.nextInt(10) >= 8) {
 				if(random.nextInt(10) >= 8) {
 					chain.fail(new RetryDecision(false));
-					chain.then(random.nextBoolean(), throwerAction);
+					chain.then(random.nextBoolean(), new ThrowerAction());
+					endWithException = true;
 					break;
 				}
 				else {
 					chain.fail(new RetryDecision(true));
-					chain.then(random.nextBoolean(), throwerAction);
+					chain.then(random.nextBoolean(), new ThrowerAction());
 				}
 			} else {
 				temp = random.nextInt();
@@ -159,15 +161,19 @@ public class TestWithEx {
 			}
 		}
 		
-		final int lastTest = random.nextInt();
-		correctAns += String.valueOf(lastTest);
-		
-		chain.start(new Consumer<Object>() {
-			public void consume(Object arg) {
-				ansBuilder.append(String.valueOf(lastTest));
-				finished.set(true);
-			}
-		});
+		if(endWithException)
+			chain.start(null);
+		else {
+			final int lastTest = random.nextInt();
+			correctAns += String.valueOf(lastTest);
+			
+			chain.start(new Consumer<Object>() {
+				public void consume(Object arg) {
+					ansBuilder.append(String.valueOf(lastTest));
+					finished.set(true);
+				}
+			});
+		}
 		
 		// Simulate the Android Looper class
 		while (!finished.get())
