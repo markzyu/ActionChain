@@ -21,8 +21,12 @@ Event handling with untangled thoughts.
 
 You could also cntract the code above with the [tangled version](https://github.com/TakefiveInteractive/Ledger-Android/blob/3402d6c3f4272881d4d6df04648237646b8ab588/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L124) using event bus.
 
- - Althought the event bus version also eliminates callback hell, the thought behind the code is scattered, tangled and a little confusing.
- - 
+ - Althought the event bus version also eliminates callback hell, the thought behind the code is scattered, tangled and a little confusing:
+   - It's not straightforward to understand the sequence of the Tasks
+ - ActionChain Bonus:
+   - We always get to choose the thread to run a task, without having to send more events, or create more named functions/callbacks.
+
+
 ## Get Started
 
 Thanks to JitPack, we could all import this library using standard syntax!
