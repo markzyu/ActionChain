@@ -41,7 +41,7 @@ allprojects {
 	}
 }
 ```
-##### 2. Add the dependency (please edit /<module name>/build.gradle)
+##### 2. Add the dependency (please edit /&lt;module name&gt;/build.gradle)
 ```groovy
 dependencies {
   compile 'com.github.C4Phone:SmartActionChain:v0.3'
