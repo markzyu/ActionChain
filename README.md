@@ -32,7 +32,7 @@ You could also cntract the code above with the [tangled version](https://github.
 Thanks to JitPack, we could all import this library using standard syntax!
 
 #### For gradle:
-##### 1. Add the JitPack repository
+##### 1. Add the JitPack repository (please edit /build.gradle)
 ```groovy
 allprojects {
 	repositories {
@@ -41,7 +41,7 @@ allprojects {
 	}
 }
 ```
-##### 2. Add the dependency
+##### 2. Add the dependency (please edit /<module name>/build.gralde)
 ```groovy
 dependencies {
   compile 'com.github.C4Phone:SmartActionChain:v0.3'
