@@ -22,16 +22,17 @@ import zyu19.libs.action.chain.config.ThreadPolicy;
  *  
  * @see ActionChain 
  * 
- * @version 0.1
+ * @version 0.3
  */
 public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?>> implements ChainStyle<ThisType> {
 
 	//------------- public functions (FakePromise Interface) ----------------
 
 	@Override
-	public final ThisType start(Consumer<?> onSuccess) {
-		new ReadOnlyChain(mActionSequence, onSuccess, mThreadPolicy).start();
-		return (ThisType)this;
+	public final ReadOnlyChain start(Consumer<?> onSuccess) {
+		ReadOnlyChain chain = new ReadOnlyChain(mActionSequence, onSuccess, mThreadPolicy);
+		chain.start();
+		return chain;
 	}
 	
 	@Override

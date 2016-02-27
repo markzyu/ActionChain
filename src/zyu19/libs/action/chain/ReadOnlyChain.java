@@ -16,10 +16,11 @@ import zyu19.libs.action.chain.config.ThreadPolicy;
  * 
  * @version 0.2
  */
-class ReadOnlyChain implements ErrorHolder {
+public class ReadOnlyChain implements ErrorHolder {
 	
 	//---------------------- ErrorHolder interface -------------------------
-	private Exception mCause;
+	private Exception mCause = null;
+	private int mCauseLink = -1;
 
 	@Override
 	public final Exception getCause() {
@@ -35,6 +36,7 @@ class ReadOnlyChain implements ErrorHolder {
 	private int mNextAction = 0;
 	private Object mLastActionOutput = null;
 	private boolean isOnSuccessCalled = false;
+	private boolean executionFinished = false;
 
 	private final ArrayList<ChainLink<?,?>> mActionSequence;
 	private final Consumer mOnSuccess;
@@ -68,13 +70,62 @@ class ReadOnlyChain implements ErrorHolder {
 	private final Consumer<ThreadPolicy> mIterator = new Consumer<ThreadPolicy>() {
 		public void consume(ThreadPolicy threadPolicy) {
 			synchronized (ReadOnlyChain.this) {
-				if (isIterationOver())
+				if (isIterationOver()) {
+					executionFinished = true;
 					return;
+				}
 				ChainLink action = mActionSequence.get(mNextAction);
 				try {
 					mLastActionOutput = action.pureAction.process(mLastActionOutput);
+					if(mLastActionOutput instanceof ReadOnlyChain && mLastActionOutput != this) {
+						// Version 0.3: support waiting for inner ActionChains
+						synchronized (mLastActionOutput) {
+							// Pending, Success, Failed w/ handler in progress, Failed & finished
+							ReadOnlyChain that = (ReadOnlyChain) mLastActionOutput;
+							boolean discardThatChain = false;
+							boolean runErrorHolderOnThat = false;
+							if(that.executionFinished) {
+								if(that.mCause != null) {
+									// in this case, that chain has been stuck in error handling
+
+									runErrorHolderOnThat = that.mActionSequence.get(that.mCauseLink).errorHandler == null;
+								} else {
+									// that chain has successfully finished
+									mLastActionOutput = that.mLastActionOutput;
+									discardThatChain = true;
+								}
+							} else {
+								// it's not possible to have a non-null mCause here.
+								// thus we can directly discard this chain
+							}
+							if(!discardThatChain) {
+								// If not discarding that chain, we discard this chain, copy the remaining actions to that
+								//   chain, and RETURN.
+
+								// Firstly set UNCAUGHT error holders to current error holder
+								if(action.errorHandler != null) for(int i = 0; i < that.mActionSequence.size(); i++)
+									if(that.mActionSequence.get(i).errorHandler == null)
+										that.mActionSequence.get(i).errorHandler = action.errorHandler;
+
+								// TODO: Then copy our actions to that chain
+								that.mActionSequence.addAll()
+
+                                // Finally discard this chain.
+								mNextAction = Integer.MAX_VALUE;
+
+								// Call error holder to restart that chain if necessary (and if wanted)
+								if(runErrorHolderOnThat) {
+									that.mActionSequence.get(that.mCauseLink).errorHandler = action.errorHandler;
+									that.mThreadPolicy.switchAndRun(action.errorHandler, that);
+								}
+								return;
+							}
+						}
+					}
 				} catch (Exception err) {
+					executionFinished = true;
 					mCause = err;
+					mCauseLink = mNextAction;
 					threadPolicy.switchAndRun(action.errorHandler, ReadOnlyChain.this);
 					return;
 				}
@@ -86,8 +137,13 @@ class ReadOnlyChain implements ErrorHolder {
 
 	private final void iterate() {
 		synchronized (ReadOnlyChain.this) {
-			if (isIterationOver())
+			mCause = null;
+			mCauseLink = -1;
+			executionFinished = false;
+			if (isIterationOver()) {
+				executionFinished = true;
 				return;
+			}
 			ChainLink action = mActionSequence.get(mNextAction);
 			callIteratorOnProperThread(action);
 		}
@@ -104,7 +160,7 @@ class ReadOnlyChain implements ErrorHolder {
 		else mThreadPolicy.switchAndRun(mIterator, mThreadPolicy);
 	}
 	
-	public final void start() {
+	final void start() {
 		iterate();
 	}
 }

@@ -20,10 +20,11 @@ import zyu19.libs.action.chain.config.ThreadPolicy;
  * When an "action" throws any Exception, this class will provide a ErrorHolder through the onFailure callback,
  * so that programmers can recover a set of "actions" from an Exception efficiently.
  * @author Zhongzhi Yu
+ * @see AbstractActionChain
  * @see ChainStyle
  * @see ErrorHolder 
  * 
- * @version 0.1
+ * @version 0.3
  *
  */
 public class ActionChain extends AbstractActionChain<ActionChain> {

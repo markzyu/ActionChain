@@ -1,5 +1,7 @@
 package zyu19.libs.action.chain.config;
 
+import zyu19.libs.action.chain.ReadOnlyChain;
+
 /**
  * This interface restricts ActionChain to avoid callback hell, and to enable
  * the users of this library to choose a thread for every "action" (or 'PureAction'
@@ -10,7 +12,7 @@ package zyu19.libs.action.chain.config;
  * Created on 7/24/2015.
  * @author Zhongzhi Yu 
  * 
- * @version 0.2
+ * @version 0.3
  */
 public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	/**
@@ -20,9 +22,11 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	 *  you can call clear() immediately after start().
 	 * @param onSuccess if not null, it will be called after all actions finish
 	 * without Exception.
-	 * @return this object, thus enabling method chaining.
+	 * @return an Object representing the sequence of PureAction you created. Usually
+     * this object is useless but if you return this object inside another PureAction,
+     * then that PureAction will wait for this chain of actions to finish before it can finish.
 	 */
-	ThisType start(Consumer<?> onSuccess);
+	ReadOnlyChain start(Consumer<?> onSuccess);
 
 	/**
 	 * Clear all actions. You can call this function after start() so as to arrange a
