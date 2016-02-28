@@ -26,6 +26,11 @@ You could also cntract the code above with the [tangled version](https://github.
  - ActionChain Bonus:
    - We always get to choose the thread to run a task, without having to send more events, or create more named functions/callbacks.
 
+## Documentations
+
+Please visit [this github.io website](http://c4phone.github.io/SmartActionChain/).
+
+It's recommended to begin by reading the documentations about ```ChainStyle``` and ```ErrorHolder```.
 
 ## Get Started
 
