@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.*;
 
@@ -32,16 +33,16 @@ public class BasicTest {
 		final StringBuilder ansBuilder = new StringBuilder();
 		Random random = new Random();
 		
-		class TestAction implements PureAction<Object, Object> {
+		class TestAction implements PureAction<Integer, Integer> {
 			public int name;
 			
 			public TestAction(int name) {
 				this.name = name;
 			}
 			
-			public Object process(Object input) throws Exception {
+			public Integer process(Integer input) throws Exception {
 				ansBuilder.append(String.valueOf(name));
-				return null;
+				return input + 1;
 			}
 		}
 		
@@ -55,8 +56,16 @@ public class BasicTest {
 		
 		String correctAns = "";
 		int temp;
+
+		chain.then(false, new PureAction<Object, Integer>() {
+			public Integer process(Object input) throws Exception {
+				return 0;
+			}
+		});
+
+		final int testLength = 100;
 		
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < testLength; i++) {
 			temp = random.nextInt();
 			correctAns += String.valueOf(temp);
 			chain.then(random.nextBoolean(), new TestAction(temp));
@@ -64,11 +73,13 @@ public class BasicTest {
 		
 		// onSuccess should break the loop (see the while loop afterwards)
 		final AtomicBoolean finished = new AtomicBoolean(false);
+		final Integer[] returnedPipeOutput = new Integer[1];
 		final int lastTest = random.nextInt();
 		correctAns += String.valueOf(lastTest);
-		chain.start(new Consumer<Object>() {
-			public void consume(Object arg) {
+		chain.start(new Consumer<Integer>() {
+			public void consume(Integer arg) {
 				ansBuilder.append(String.valueOf(lastTest));
+				returnedPipeOutput[0] = arg;
 				finished.set(true);
 			}
 		});
@@ -82,6 +93,8 @@ public class BasicTest {
 			}
 		
 		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
+		Assert.assertTrue("The IO pipe of Action Chain was messed up: " + (returnedPipeOutput[0]==null ? "null" : returnedPipeOutput[0])
+				, returnedPipeOutput[0] != null && returnedPipeOutput[0] == testLength);
 	}
 	
 	@Test
