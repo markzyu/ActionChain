@@ -31,7 +31,7 @@ package zyu19.libs.action.chain.config;
  * In order to retry any task in any ActionChain, the user must call ErrorHolder.retry()
  * within the 'Consumer&lt;ErrorHolder&gt;' callback. Calling the function from the outside will not work.
  * <p>
- * ThreadPolicy will ensure that this class runs on the thread specified
+ * ThreadPolicy will ensure that this class runs on <b>UI (Main)</b> thread specified
  * by ThreadChanger.
  * <p>
  * BY DEFAULT, if the user code doesn't call ErrorHolder at all, the halted process will be DISCARDED.
