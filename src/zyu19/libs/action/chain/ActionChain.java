@@ -36,7 +36,18 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 	public ActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
 		super(threadPolicy, onFailure);
 	}
-	
+
+	/**
+	 * @deprecated Use of this function is now discouraged. <br>
+	 *   The editor of the chain might change the default exception handler, and has to change the i/o flow among
+	 *   current chain's PureActions.
+	 *   <br>
+	 *
+	 *   These problems can be avoid by returning a new ActionChain
+	 *   inside a PureAction. This works exactly the same as the way a Promise wait for another promise if that second
+	 *   promise was returned inside the first promise's actions.
+     */
+	@Deprecated
 	public ActionChain use(ChainEditor editor) {
 		editor.edit(this);
 		return this;
