@@ -108,7 +108,8 @@ public class ReadOnlyChain implements ErrorHolder {
 										that.mActionSequence.get(i).errorHandler = action.errorHandler;
 
 								// TODO: Then copy our actions to that chain
-								that.mActionSequence.addAll()
+								for(int i = mNextAction + 1; i < mActionSequence.size(); i++)
+									that.mActionSequence.add(mActionSequence.get(i));
 
                                 // Finally discard this chain.
 								mNextAction = Integer.MAX_VALUE;
