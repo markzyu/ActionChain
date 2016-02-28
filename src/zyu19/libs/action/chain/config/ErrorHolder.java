@@ -1,7 +1,7 @@
 package zyu19.libs.action.chain.config;
 
 /**
- * ActionChain will provide instances of this type through 'Consumer&lt;ErrorHolder&gt;'
+ * ActionChain will provide instances of this type through 'NiceConsumer&lt;ErrorHolder&gt;'
  * when an error occurred, to inform the user whether the error may be recoverable.
  * <p>
  * If possibly recoverable, the user should check the error (which
@@ -29,7 +29,7 @@ package zyu19.libs.action.chain.config;
  * <h1>NOTE:</h1>
  * <p>
  * In order to retry any task in any ActionChain, the user must call ErrorHolder.retry()
- * within the 'Consumer&lt;ErrorHolder&gt;' callback. Calling the function from the outside will not work.
+ * within the 'NiceConsumer&lt;ErrorHolder&gt;' callback. Calling the function from the outside will not work.
  * <p>
  * ThreadPolicy will ensure that this class runs on <b>UI (Main)</b> thread specified
  * by ThreadChanger.
@@ -38,7 +38,7 @@ package zyu19.libs.action.chain.config;
  * <h1>WARNING:</h1>
  * <p>
  * It should be avoided to pass ErrorHolder to threads other than the
- * thread of the 'Consumer&lt;ErrorHolder&gt;' callback.
+ * thread of the 'NiceConsumer&lt;ErrorHolder&gt;' callback.
  * <p>
  * Created on 7/2/2015.
  * <br>

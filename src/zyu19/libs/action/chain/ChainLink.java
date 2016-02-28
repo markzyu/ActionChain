@@ -1,8 +1,8 @@
 package zyu19.libs.action.chain;
 
-import zyu19.libs.action.chain.config.Consumer;
+import zyu19.libs.action.chain.callbacks.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
-import zyu19.libs.action.chain.config.PureAction;
+import zyu19.libs.action.chain.callbacks.PureAction;
 
 
 /**
@@ -18,9 +18,9 @@ import zyu19.libs.action.chain.config.PureAction;
 class ChainLink<In, Out> {
 	final public PureAction<In, Out> pureAction;
 	final public boolean runOnWorkerThread;
-	public Consumer<ErrorHolder> errorHandler;
+	public NiceConsumer<ErrorHolder> errorHandler;
 
-	public ChainLink(PureAction<In, Out> pureAction, Consumer<ErrorHolder> errorHandler, boolean runOnWorkerThread) {
+	public ChainLink(PureAction<In, Out> pureAction, NiceConsumer<ErrorHolder> errorHandler, boolean runOnWorkerThread) {
 		this.pureAction = pureAction;
 		this.errorHandler = errorHandler;
 		this.runOnWorkerThread = runOnWorkerThread;

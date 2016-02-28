@@ -1,4 +1,4 @@
-package zyu19.libs.action.chain.config;
+package zyu19.libs.action.chain.callbacks;
 
 /**
  * This interface's instances are meant to be used as callbacks, in the form of

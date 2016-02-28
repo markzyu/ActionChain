@@ -1,4 +1,4 @@
-package zyu19.libs.action.chain.config;
+package zyu19.libs.action.chain.callbacks;
 
 import zyu19.libs.action.chain.ActionChain;
 

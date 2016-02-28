@@ -2,11 +2,9 @@ package zyu19.libs.action.chain;
 
 import java.util.ArrayList;
 
-import zyu19.libs.action.chain.config.Consumer;
-import zyu19.libs.action.chain.config.ErrorHolder;
-import zyu19.libs.action.chain.config.ChainStyle;
-import zyu19.libs.action.chain.config.PureAction;
-import zyu19.libs.action.chain.config.ThreadPolicy;
+import zyu19.libs.action.chain.callbacks.PureAction;
+import zyu19.libs.action.chain.config.*;
+import zyu19.libs.action.chain.callbacks.NiceConsumer;
 
 /**
  * For usages of any implementation of this class, please refer to javadoc of ChainStyle and ErrorHolder.
@@ -29,21 +27,21 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 	//------------- public functions (FakePromise Interface) ----------------
 
 	@Override
-	public final ReadOnlyChain start(Consumer<?> onSuccess) {
+	public final <In> ReadOnlyChain start(NiceConsumer<In> onSuccess) {
 		ReadOnlyChain chain = new ReadOnlyChain(mActionSequence, onSuccess, mThreadPolicy);
 		chain.start();
 		return chain;
 	}
 	
 	@Override
-	public ThisType clear(Consumer<ErrorHolder> onFailure) {
+	public ThisType clear(NiceConsumer<ErrorHolder> onFailure) {
 		mCurrentOnFailure = onFailure;
 		mActionSequence.clear();
 		return (ThisType)this;
 	}
 
 	@Override
-	public final ThisType fail(Consumer<ErrorHolder> onFailure) {
+	public final ThisType fail(NiceConsumer<ErrorHolder> onFailure) {
 		mCurrentOnFailure = onFailure;
 		return (ThisType)this;
 	}
@@ -68,7 +66,7 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 
 	//------------- Constructors ----------------
 
-	private Consumer<ErrorHolder> mCurrentOnFailure;
+	private NiceConsumer<ErrorHolder> mCurrentOnFailure;
 	private ArrayList<ChainLink<?,?>> mActionSequence = new ArrayList<>();
 	protected final ThreadPolicy mThreadPolicy;
 	
@@ -76,7 +74,7 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 		mThreadPolicy = threadPolicy;
 	}
 
-	public AbstractActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
+	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<ErrorHolder> onFailure) {
 		mThreadPolicy = threadPolicy;
 		mCurrentOnFailure = onFailure;
 	}

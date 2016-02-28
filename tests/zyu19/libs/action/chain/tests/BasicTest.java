@@ -5,11 +5,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.*;
 
 import zyu19.libs.action.chain.ActionChain;
+import zyu19.libs.action.chain.callbacks.NiceConsumer;
+import zyu19.libs.action.chain.callbacks.Producer;
+import zyu19.libs.action.chain.callbacks.PureAction;
+import zyu19.libs.action.chain.callbacks.ThreadChanger;
 import zyu19.libs.action.chain.config.*;
 
 public class BasicTest {
@@ -46,7 +49,7 @@ public class BasicTest {
 			}
 		}
 		
-		chain.clear(new Consumer<ErrorHolder>() {
+		chain.clear(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
@@ -57,11 +60,15 @@ public class BasicTest {
 		String correctAns = "";
 		int temp;
 
+		chain.uiThen(() -> 0);
+
+		/*
 		chain.then(false, new PureAction<Object, Integer>() {
 			public Integer process(Object input) throws Exception {
 				return 0;
 			}
 		});
+		*/
 
 		final int testLength = 100;
 		
@@ -76,7 +83,7 @@ public class BasicTest {
 		final Integer[] returnedPipeOutput = new Integer[1];
 		final int lastTest = random.nextInt();
 		correctAns += String.valueOf(lastTest);
-		chain.start(new Consumer<Integer>() {
+		chain.start(new NiceConsumer<Integer>() {
 			public void consume(Integer arg) {
 				ansBuilder.append(String.valueOf(lastTest));
 				returnedPipeOutput[0] = arg;
@@ -99,7 +106,7 @@ public class BasicTest {
 	
 	@Test
 	public void TestNoException_ClearFunctionWorks() {
-		chain = new ActionChain(threadPolicy, new Consumer<ErrorHolder>() {
+		chain = new ActionChain(threadPolicy, new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
@@ -112,7 +119,7 @@ public class BasicTest {
 					Assert.fail("chain.clear() did not remove all previous configurations!");
 				return null;
 			}
-		}).start(new Consumer<Object>() {
+		}).start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
 				finished.set(true);
 			}
@@ -128,14 +135,14 @@ public class BasicTest {
 		
 		// ----------- clear chain and start a new one --------------
 		
-		chain.clear(new Consumer<ErrorHolder>() {
+		chain.clear(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
 		});
 		shouldFail.set(true);
 		finished.set(false);
-		chain.start(new Consumer<Object>() {
+		chain.start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
 				finished.set(true);
 			}
@@ -154,7 +161,7 @@ public class BasicTest {
 	public void TestNoException_SwitchThreadCorrectly() {
 		Random rand = new Random();
 		
-		chain.clear(new Consumer<ErrorHolder>() {
+		chain.clear(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
@@ -176,7 +183,7 @@ public class BasicTest {
 		
 		// onSuccess should break the loop (see the while loop afterwards)
 		final AtomicBoolean finished = new AtomicBoolean(false);
-		Consumer<Object> onSuccess = new Consumer<Object>() {
+		NiceConsumer<Object> onSuccess = new NiceConsumer<Object>() {
 			public void consume(Object arg) {
 				finished.set(true);
 			}
@@ -222,7 +229,7 @@ public class BasicTest {
 			}
 		}
 		
-		chain.clear(new Consumer<ErrorHolder>() {
+		chain.clear(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
@@ -246,7 +253,7 @@ public class BasicTest {
 		
 		// onSuccess should break the loop (see the while loop afterwards)
 		final AtomicBoolean finished = new AtomicBoolean(false);
-		chain.start(new Consumer<Object>() {
+		chain.start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
 				finished.set(true);
 			}

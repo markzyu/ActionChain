@@ -1,8 +1,8 @@
 package zyu19.libs.action.chain;
 
-import zyu19.libs.action.chain.config.Consumer;
+import zyu19.libs.action.chain.callbacks.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
-import zyu19.libs.action.chain.config.ChainEditor;
+import zyu19.libs.action.chain.callbacks.ChainEditor;
 import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
@@ -33,7 +33,7 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 		super(threadPolicy);
 	}
 	
-	public ActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
+	public ActionChain(ThreadPolicy threadPolicy, NiceConsumer<ErrorHolder> onFailure) {
 		super(threadPolicy, onFailure);
 	}
 

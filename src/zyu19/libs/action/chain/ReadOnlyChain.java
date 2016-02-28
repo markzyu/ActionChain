@@ -2,7 +2,7 @@ package zyu19.libs.action.chain;
 
 import java.util.ArrayList;
 
-import zyu19.libs.action.chain.config.Consumer;
+import zyu19.libs.action.chain.callbacks.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
@@ -14,7 +14,7 @@ import zyu19.libs.action.chain.config.ThreadPolicy;
  * Separated as a helper class on 8/8/2015.
  * @author Zhongzhi Yu 
  * 
- * @version 0.2
+ * @version 0.3
  */
 public class ReadOnlyChain implements ErrorHolder {
 	
@@ -39,7 +39,7 @@ public class ReadOnlyChain implements ErrorHolder {
 	private boolean executionFinished = false;
 
 	private final ArrayList<ChainLink<?,?>> mActionSequence;
-	private final Consumer mOnSuccess;
+	private final NiceConsumer mOnSuccess;
 	private final ThreadPolicy mThreadPolicy;
 
 	/**
@@ -48,7 +48,7 @@ public class ReadOnlyChain implements ErrorHolder {
 	 * @param onSuccess The callback to notify when all actions finished without Exception.
 	 * @param threadPolicy For the usages of this object, please refer to the javadoc of threadPolicy. 
 	 */
-	public ReadOnlyChain(ArrayList<ChainLink<?,?>> actionSequence, Consumer<?> onSuccess, ThreadPolicy threadPolicy) {
+	public ReadOnlyChain(ArrayList<ChainLink<?,?>> actionSequence, NiceConsumer<?> onSuccess, ThreadPolicy threadPolicy) {
 		mActionSequence = new ArrayList<ChainLink<?,?>>(actionSequence);
 		mThreadPolicy = threadPolicy;
 		mOnSuccess = onSuccess;
@@ -67,7 +67,7 @@ public class ReadOnlyChain implements ErrorHolder {
 		} else return false;
 	}
 
-	private final Consumer<ThreadPolicy> mIterator = new Consumer<ThreadPolicy>() {
+	private final NiceConsumer<ThreadPolicy> mIterator = new NiceConsumer<ThreadPolicy>() {
 		public void consume(ThreadPolicy threadPolicy) {
 			synchronized (ReadOnlyChain.this) {
 				if (isIterationOver()) {

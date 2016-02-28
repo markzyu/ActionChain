@@ -54,6 +54,25 @@
 		<plugins>
 
 			<plugin>
+				<groupId>net.orfjackal.retrolambda</groupId>
+				<artifactId>retrolambda-maven-plugin</artifactId>
+				<version>2.1.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process-main</goal>
+							<goal>process-test</goal>
+						</goals>
+					</execution>
+				</executions>
+
+                <configuration>
+                    <target>1.7</target>
+                    <defaultMethods>true</defaultMethods>
+                </configuration>
+			</plugin>
+
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18.1</version>
@@ -106,10 +125,10 @@
 					<encoding>
 						GBK
 					</encoding>
-					<testSource>1.7</testSource>
-					<testTarget>1.7</testTarget>
-					<source>1.7</source>
-					<target>1.7</target>
+					<testSource>1.8</testSource>
+					<testTarget>1.8</testTarget>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
