@@ -53,16 +53,16 @@ public class ThreadPolicy {
 	}
 
 
-	public <ArgType> void switchAndRun(final Consumer<ArgType> consumer, final ArgType arg) {
-		if (consumer == null)
+	public <ArgType> void switchAndRun(final NiceConsumer<ArgType> niceConsumer, final ArgType arg) {
+		if (niceConsumer == null)
 			return;
 		if (mThreadChanger == null)
-			consumer.consume(arg);
+			niceConsumer.consume(arg);
 		else {
 			mThreadChanger.runCallbackOnMainThread(new Runnable(){
 				@Override
 				public void run() {
-					consumer.consume(arg);
+					niceConsumer.consume(arg);
 				}
 			});
 		}

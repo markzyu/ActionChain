@@ -10,12 +10,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import zyu19.libs.action.chain.ActionChain;
-import zyu19.libs.action.chain.config.Consumer;
-import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.PureAction;
 import zyu19.libs.action.chain.config.ThreadChanger;
-import zyu19.libs.action.chain.config.ThreadPolicy;
+import zyu19.libs.action.chain.config.*;
+import zyu19.libs.action.chain.config.NiceConsumer;
 
+/**
+ * @version 0.4
+ */
 public class TestWithEx {
 	BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 	ThreadPolicy threadPolicy = new ThreadPolicy(new ThreadChanger() {
@@ -50,7 +52,7 @@ public class TestWithEx {
 		final Exception err = new Exception(Double.toString(r.nextDouble())); 
 		final AtomicBoolean finished = new AtomicBoolean(false);
 		
-		new ActionChain(threadPolicy).fail(new Consumer<ErrorHolder>() {
+		new ActionChain(threadPolicy).fail(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.assertNotNull(arg);
 				Assert.assertNotNull(arg.getCause());
@@ -66,7 +68,7 @@ public class TestWithEx {
 				Assert.fail("ActionChain is not halted after exception is thrown (retry() not called)");
 				return null;
 			}
-		}).start(new Consumer<Object>() {
+		}).start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
 				Assert.fail("onSuccess is run after exception is thrown (retry() not called)");
 				finished.set(true);
@@ -103,7 +105,7 @@ public class TestWithEx {
 		// either RetryDecision or onSuccess should break the loop (see the while loop afterwards)
 		final AtomicBoolean finished = new AtomicBoolean(false);
 		
-		class RetryDecision implements Consumer<ErrorHolder> {
+		class RetryDecision implements NiceConsumer<ErrorHolder> {
 			
 			public boolean willRetry;
 			
@@ -130,7 +132,7 @@ public class TestWithEx {
 			}
 		};
 		
-		chain.clear(new Consumer<ErrorHolder>() {
+		chain.clear(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
 				Assert.fail(arg.getCause().toString());
 			}
@@ -167,7 +169,7 @@ public class TestWithEx {
 			final int lastTest = random.nextInt();
 			correctAns += String.valueOf(lastTest);
 			
-			chain.start(new Consumer<Object>() {
+			chain.start(new NiceConsumer<Object>() {
 				public void consume(Object arg) {
 					ansBuilder.append(String.valueOf(lastTest));
 					finished.set(true);

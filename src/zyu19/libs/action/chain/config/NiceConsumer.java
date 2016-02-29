@@ -10,12 +10,11 @@ package zyu19.libs.action.chain.config;
  * <br>
  * 2. Consumer: these callbacks are allowed to throw Exceptions
  * <br>
- * Created on 6/28/2015.
- * Modified on 2/28/2016.
- * @author Zhongzhi Yu 
- * 
+ * Created on 2/28/2016.
+ * @author Zhongzhi Yu
+ *
  * @version 0.4
  */
-public interface Consumer<In> {
-	void consume(In arg) throws Exception;
+public interface NiceConsumer<In> {
+    void consume(In arg);
 }

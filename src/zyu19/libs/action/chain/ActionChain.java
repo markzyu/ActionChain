@@ -1,6 +1,6 @@
 package zyu19.libs.action.chain;
 
-import zyu19.libs.action.chain.config.Consumer;
+import zyu19.libs.action.chain.config.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ChainEditor;
 import zyu19.libs.action.chain.config.ChainStyle;
@@ -20,10 +20,11 @@ import zyu19.libs.action.chain.config.ThreadPolicy;
  * When an "action" throws any Exception, this class will provide a ErrorHolder through the onFailure callback,
  * so that programmers can recover a set of "actions" from an Exception efficiently.
  * @author Zhongzhi Yu
+ * @see AbstractActionChain
  * @see ChainStyle
  * @see ErrorHolder 
  * 
- * @version 0.1
+ * @version 0.3
  *
  */
 public class ActionChain extends AbstractActionChain<ActionChain> {
@@ -32,10 +33,21 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 		super(threadPolicy);
 	}
 	
-	public ActionChain(ThreadPolicy threadPolicy, Consumer<ErrorHolder> onFailure) {
+	public ActionChain(ThreadPolicy threadPolicy, NiceConsumer<ErrorHolder> onFailure) {
 		super(threadPolicy, onFailure);
 	}
-	
+
+	/**
+	 * @deprecated Use of this function is now discouraged. <br>
+	 *   The editor of the chain might change the default exception handler, and has to change the i/o flow among
+	 *   current chain's PureActions.
+	 *   <br>
+	 *
+	 *   These problems can be avoid by returning a new ActionChain
+	 *   inside a PureAction. This works exactly the same as the way a Promise wait for another promise if that second
+	 *   promise was returned inside the first promise's actions.
+     */
+	@Deprecated
 	public ActionChain use(ChainEditor editor) {
 		editor.edit(this);
 		return this;

@@ -3,12 +3,18 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.C4Phone</groupId>
 	<artifactId>action-chain</artifactId>
-	<version>0.3</version>
+	<version>0.4-snapshot</version>
 	<name>Smart Action Chain</name>
 	<description>This is a Java library that:
-  1. Run different actions on either main/ui thread, or a worker thread, determined by the user.
-  2. Avoid callback hell and help you write code in a chain style, similar to promise-then.
-  3. New features of version 0.3: ChainEditor and maybe ActionChain.append(ActionChain)</description>
+        1. Run different actions on either main/ui thread, or a worker thread, determined by the user.
+        2. Avoid callback hell and help you write code in a chain style, similar to promise-then.
+        3. New features in version 0.3: ChainEditor as a requested feature.
+        4. New features in version 0.4:
+            Writing tests using Retrolambda.
+            Enable passing Producer and Consumer into then().
+            ChainEditor became deprecated -- instead, one should return new ActionChains inside the callback.
+
+	</description>
 	<url>https://github.com/C4Phone/SmartActionChain</url>
 	<licenses>
 		<license>
@@ -52,6 +58,25 @@
 			</resource>
 		</resources>
 		<plugins>
+
+			<plugin>
+				<groupId>net.orfjackal.retrolambda</groupId>
+				<artifactId>retrolambda-maven-plugin</artifactId>
+				<version>2.1.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process-main</goal>
+							<goal>process-test</goal>
+						</goals>
+					</execution>
+				</executions>
+
+                <configuration>
+                    <target>1.7</target>
+                    <defaultMethods>true</defaultMethods>
+                </configuration>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -106,10 +131,10 @@
 					<encoding>
 						GBK
 					</encoding>
-					<testSource>1.7</testSource>
-					<testTarget>1.7</testTarget>
-					<source>1.7</source>
-					<target>1.7</target>
+					<testSource>1.8</testSource>
+					<testTarget>1.8</testTarget>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
