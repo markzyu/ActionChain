@@ -39,13 +39,26 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	ThisType clear(NiceConsumer<ErrorHolder> onFailure);
 
 	/**
-	 * set the onFailure callback for 'PureAction' objects added subsequently
+	 * set the onFailure callback for 'PureAction' objects added <b>subsequently</b>
+	 * <br><b>Note: uncaught exceptions will be ignored so that it will not crash your app.</b>
 	 * @param onFailure a callback to be invoked when any Exception is thrown from "actions"
 	 * (or 'PureAction' objects).
 	 * @return this object, thus enabling method chaining.
 	 */
 	ThisType fail(NiceConsumer<ErrorHolder> onFailure);
-	
+
+	/**
+	 * set the onFailure callback for 'PureAction' objects added <b>subsequently</b>
+	 * Adding additional fail <b>with class constraints</b> will not wipe out your previous default failure handler,
+	 *   but the original handler will not be called if the specified exception was caught by this new onFailure handler.
+	 * <br><b>Note: uncaught exceptions will be ignored so that it will not crash your app.</b>
+	 * @param claz specifying the type of Exception you want to catch, other types will not be caught.
+	 * @param onFailure a callback to be invoked when any Exception is thrown from "actions"
+	 * (or 'PureAction' objects).
+	 * @return this object, thus enabling method chaining.
+	 */
+	<T extends Exception> ThisType fail(Class<T> claz, NiceConsumer<ErrorHolder<T>> onFailure);
+
 	/**
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle.
 	 * @param runOnWorkerThread if set to false, the action will run on the main thread (UI thread)

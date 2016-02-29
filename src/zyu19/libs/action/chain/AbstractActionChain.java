@@ -47,6 +47,18 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 	}
 
 	@Override
+	public <T extends Exception> ThisType fail(Class<T> claz, NiceConsumer<ErrorHolder<T>> onFailure) {
+		final NiceConsumer<ErrorHolder> oldHandler = mCurrentOnFailure;
+		mCurrentOnFailure = error -> {
+			if(claz.isAssignableFrom(error.getCause().getClass()))
+				onFailure.consume((ErrorHolder<T>)error);
+			else if(oldHandler != null)
+				oldHandler.consume(error);
+		};
+		return (ThisType)this;
+	}
+
+	@Override
 	public <In, Out> ThisType then(boolean runOnWorkerThread, PureAction<In, Out> action) {
 		mActionSequence.add(new ChainLink<In,Out>(action, mCurrentOnFailure, runOnWorkerThread));
 		return (ThisType)this;
