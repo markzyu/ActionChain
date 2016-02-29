@@ -81,7 +81,7 @@ public class BasicTest {
         chain = new ActionChain(threadPolicy, failure -> Assert.fail(failure.getCause().toString()));
         chain.netThen(input -> {
             if (shouldFail.get())
-                Assert.fail("chain.clear() did not remove all previous configurations!");
+                queue.add(() -> Assert.fail("chain.clear() did not remove all previous configurations!"));
             return null;
         }).start(arg -> finished.set(true));
 

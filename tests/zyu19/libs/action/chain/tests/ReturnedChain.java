@@ -41,7 +41,7 @@ public class ReturnedChain {
 		String correctAns = "";
 		Random random = new Random();
 
-		chain.clear(errorHolder -> queue.add(() -> Assert.fail(errorHolder.getCause().toString()))
+		chain.clear(errorHolder -> Assert.fail(errorHolder.getCause().toString())
 		).netThen(() -> 0);
 
 		for (int i = 0; i < testLength; i++) {

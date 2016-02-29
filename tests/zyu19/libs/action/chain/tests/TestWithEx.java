@@ -65,7 +65,7 @@ public class TestWithEx {
 			}
 		}).then(true, new PureAction<Object, Object>() {
 			public Object process(Object input) throws Exception {
-				Assert.fail("ActionChain is not halted after exception is thrown (retry() not called)");
+				queue.add(() -> Assert.fail("ActionChain is not halted after exception is thrown (retry() not called)"));
 				return null;
 			}
 		}).start(new NiceConsumer<Object>() {
