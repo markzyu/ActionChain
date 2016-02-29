@@ -77,10 +77,10 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 
 
 	/**
-	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
-	 please always pass in lambda with "{}" wrapping the function body
+	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
+	 * this is similar to then except that the callback does not need to return anything.
 	 */
-	default <In> ThisType then(boolean runOnWorkerThread, Consumer<In> action) {
+	default <In> ThisType thenConsume(boolean runOnWorkerThread, Consumer<In> action) {
 		then(runOnWorkerThread, (In in) -> {
 			action.consume(in);
 			return null;
@@ -105,11 +105,10 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 
 
 	/**
-	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
-	 please always pass in lambda with "{}" wrapping the function body
+	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
+	 * this is similar to then except that the callback does not need to return anything.
 	 */
-
-	default <In> ThisType netThen(Consumer<In> action) {
+	default <In> ThisType netConsume(Consumer<In> action) {
 		netThen((In in) -> {
 			action.consume(in);
 			return null;
@@ -132,10 +131,10 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	}
 
 	/**
-	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
-	 please always pass in lambda with "{}" wrapping the function body
+	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
+	 * this is similar to then except that the callback does not need to return anything.
 	 */
-	default <In> ThisType uiThen(Consumer<In> action) {
+	default <In> ThisType uiConsume(Consumer<In> action) {
 		uiThen((In in) -> {
 			action.consume(in);
 			return null;

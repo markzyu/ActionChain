@@ -10,10 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import zyu19.libs.action.chain.ActionChain;
-import zyu19.libs.action.chain.config.PureAction;
-import zyu19.libs.action.chain.config.ThreadChanger;
 import zyu19.libs.action.chain.config.*;
-import zyu19.libs.action.chain.config.NiceConsumer;
 
 /**
  * Created by Zhongzhi Yu on 2/28/16.
@@ -63,7 +60,7 @@ public class ReturnedChainTest {
                 ActionChain subChain = new ActionChain(threadPolicy);
                 for (int j = 0; j < subTestLength; j++) {
                     final int thisJ = j;
-                    subChain.then(random.nextBoolean(), obj -> {
+                    subChain.thenConsume(random.nextBoolean(), obj -> {
                         ansBuilder.append(thisI);
                         ansBuilder.append(", ");
                         ansBuilder.append(thisJ);
@@ -165,7 +162,7 @@ public class ReturnedChainTest {
                     final int thisJ = j;
                     final Boolean[] hasThrown = new Boolean[1];
                     hasThrown[0] = false;
-                    subChain.then(random.nextBoolean(), obj -> {
+                    subChain.thenConsume(random.nextBoolean(), obj -> {
                         if (thisJ == subErrorJ && !hasThrown[0]) {
                             hasThrown[0] = true;
                             throw new Exception();
@@ -178,12 +175,12 @@ public class ReturnedChainTest {
                 }
                 return subChain.start(obj -> {
                 });
-            }).uiThen(obj -> {
+            }).uiConsume(obj -> {
                 ansBuilder.append("End");
             });
 
             if(!retry) {
-                chain.then(random.nextBoolean(), obj -> {
+                chain.thenConsume(random.nextBoolean(), obj -> {
                     queue.add(() -> Assert.fail("This line should not have been runned"));
                 });
                 break;

@@ -124,11 +124,11 @@ public class BasicTest {
 
         for (int i = 0; i < 100; i++) {
             if (rand.nextBoolean())
-                chain.uiThen(input -> {
+                chain.uiConsume(input -> {
                     final boolean testResult = isMainThread();
                     queue.add(() -> Assert.assertTrue(testResult));
                 });
-            else chain.netThen(input -> {
+            else chain.netConsume(input -> {
                 final boolean testResult = !isMainThread();
                 queue.add(() -> Assert.assertTrue(testResult));
             });
@@ -162,7 +162,7 @@ public class BasicTest {
             if (temp)
                 current++;
             else current--;
-            chain.then(random.nextBoolean(), input -> {
+            chain.thenConsume(random.nextBoolean(), input -> {
                 int read = notAtomicBlock[0];
                 for (int k = 0; k < 100; k++)
                     ansBuilder.append(read);

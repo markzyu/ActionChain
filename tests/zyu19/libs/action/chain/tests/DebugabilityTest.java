@@ -1,14 +1,11 @@
 package zyu19.libs.action.chain.tests;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import zyu19.libs.action.chain.ActionChain;
-import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
-import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -60,13 +57,9 @@ public class DebugabilityTest {
     public void ExceptionInErrorHandler() {
         final Integer nullInt = null;
 
-        chain.clear(errorHolder -> {
-            System.out.println(nullInt + 1);
-        }).then(random.nextBoolean(), obj -> {
-            System.out.println(nullInt + 1);
-        }).start(obj -> {
-            Assert.fail("should crash");
-        });
+        chain.clear(errorHolder -> System.out.println(nullInt + 1)
+        ).thenConsume(random.nextBoolean(), obj -> System.out.println(nullInt + 1)
+        ).start(obj -> Assert.fail("should crash"));
 
         AfterTests();
     }
@@ -75,9 +68,8 @@ public class DebugabilityTest {
     public void ExceptionInSuccessHandler() {
         final Integer nullInt = null;
 
-        chain.clear(errorHolder -> {
-            Assert.fail("should not have caught any exception inside pureActions");
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
+        chain.clear(errorHolder -> Assert.fail("should not have caught any exception inside pureActions")
+        ).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
             Assert.assertTrue(obj == 123);
             System.out.println(nullInt + 1);
         });
@@ -89,17 +81,14 @@ public class DebugabilityTest {
     public void ExceptionInSubChainSuccessHandler() {
         final Integer nullInt = null;
 
-        chain.clear(errorHolder -> {
-            Assert.fail("should not have caught any exception inside pureActions");
-        }).then(random.nextBoolean(), obj -> {
+        chain.clear(errorHolder -> Assert.fail("should not have caught any exception inside pureActions")
+        ).then(random.nextBoolean(), obj -> {
             return new ActionChain(threadPolicy, error -> {
                 Assert.fail("should not have caught any exception inside pureActions");
-            }).then(random.nextBoolean(), () -> 456).start(innerans -> {
-                System.out.println(nullInt + 1);
-            });
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.assertTrue(obj == 123);
-        });
+            }).then(random.nextBoolean(), () -> 456
+            ).start(innerans -> System.out.println(nullInt + 1));
+        }).then(random.nextBoolean(), obj -> 123
+        ).start((Integer obj) -> Assert.assertTrue(obj == 123));
 
         AfterTests();
     }
@@ -113,14 +102,10 @@ public class DebugabilityTest {
         }).then(random.nextBoolean(), obj -> {
             return new ActionChain(threadPolicy, error -> {
                 System.out.println(nullInt + 1);
-            }).then(random.nextBoolean(), xxx -> {
-                System.out.println(nullInt + 1);
-            }).start(innerans -> {
-                Assert.fail("should not have succeeded");
-            });
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.assertTrue(obj == 123);
-        });
+            }).thenConsume(random.nextBoolean(), xxx -> System.out.println(nullInt + 1)
+            ).start(innerans -> Assert.fail("should not have succeeded"));
+        }).then(random.nextBoolean(), obj -> 123
+        ).start((Integer obj) -> Assert.assertTrue(obj == 123));
 
         AfterTests();
     }
@@ -132,11 +117,9 @@ public class DebugabilityTest {
         chain.clear(errorHolder -> {
             System.out.println(nullInt + 1);
         }).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy).then(random.nextBoolean(), xxx -> {
+            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
                 System.out.println(nullInt + 1);
-            }).start(innerans -> {
-                Assert.fail("should not have succeeded");
-            });
+            }).start(innerans -> Assert.fail("should not have succeeded"));
         }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
             Assert.fail("should not have succeeded");
         });
