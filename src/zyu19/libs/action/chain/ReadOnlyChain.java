@@ -39,8 +39,8 @@ public class ReadOnlyChain implements ErrorHolder {
     private boolean executionFinished = false;
 
     private final ArrayList<ChainLink<?, ?>> mActionSequence = new ArrayList<>();
-    private final NiceConsumer mOnSuccess;
     private final ThreadPolicy mThreadPolicy;
+    private NiceConsumer mOnSuccess;
 
     /**
      * Constructor of ReadOnlyChain.
@@ -98,22 +98,29 @@ public class ReadOnlyChain implements ErrorHolder {
                             }
                         } else {
                             // it's not possible to have a non-null mCause here.
-                            // thus we can directly discard this chain
+                            // thus we can PAUSE this chain
                         }
                         if (!discardThatChain) {
-                            // If not discarding that chain, we discard this chain, copy the remaining actions to that
-                            //   chain, and RETURN.
+                            // If not discarding that chain, we PAUSE this chain, add callback into that chain
+                            //   which will eventually restart our chain.
 
                             // Firstly set UNCAUGHT error holders to current error holder
                             if (action.errorHandler != null) for (int i = 0; i < that.mActionSequence.size(); i++)
                                 if (that.mActionSequence.get(i).errorHandler == null)
                                     that.mActionSequence.get(i).errorHandler = action.errorHandler;
 
-                            // TODO: Then copy our actions to that chain
-                            for (int i = mNextAction + 1; i < mActionSequence.size(); i++)
-                                that.mActionSequence.add(mActionSequence.get(i));
+                            // Add the callback
+                            final NiceConsumer wrapped = that.mOnSuccess;
+                            final int resumePoint = mNextAction + 1;
+                            NiceConsumer wrapper = input -> {
+                                if(wrapped != null)
+                                    wrapped.consume(input);
+                                ReadOnlyChain.this.mNextAction = resumePoint;
+                                ReadOnlyChain.this.iterate();
+                            };
+                            that.mOnSuccess = wrapper;
 
-                            // Finally discard this chain.
+                            // Finally PAUSE this chain.
                             mNextAction = Integer.MAX_VALUE;
 
                             // Call error holder to restart that chain if necessary (and if wanted)
