@@ -144,4 +144,6 @@ public class DebugabilityTest {
         AfterTests();
     }
 
+    // TODO: (v0.4) add tests about converting between ErrorHandler<T> and ErrorHandler<E> where E != T, when using ChainStyle.fail(claz, handler)
+
 }

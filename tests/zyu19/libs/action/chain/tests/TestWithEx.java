@@ -188,4 +188,5 @@ public class TestWithEx {
 		
 		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
 	}
+	// TODO: (v0.4) add tests about ChainStyle.fail(claz, handler)
 }
