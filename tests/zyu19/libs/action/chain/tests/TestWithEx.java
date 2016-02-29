@@ -10,11 +10,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import zyu19.libs.action.chain.ActionChain;
-import zyu19.libs.action.chain.callbacks.PureAction;
-import zyu19.libs.action.chain.callbacks.ThreadChanger;
+import zyu19.libs.action.chain.config.PureAction;
+import zyu19.libs.action.chain.config.ThreadChanger;
 import zyu19.libs.action.chain.config.*;
-import zyu19.libs.action.chain.callbacks.NiceConsumer;
+import zyu19.libs.action.chain.config.NiceConsumer;
 
+/**
+ * @version 0.4
+ */
 public class TestWithEx {
 	BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 	ThreadPolicy threadPolicy = new ThreadPolicy(new ThreadChanger() {

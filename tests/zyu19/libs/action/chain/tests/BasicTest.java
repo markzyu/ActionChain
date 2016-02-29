@@ -9,265 +9,183 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 
 import zyu19.libs.action.chain.ActionChain;
-import zyu19.libs.action.chain.callbacks.NiceConsumer;
-import zyu19.libs.action.chain.callbacks.Producer;
-import zyu19.libs.action.chain.callbacks.PureAction;
-import zyu19.libs.action.chain.callbacks.ThreadChanger;
 import zyu19.libs.action.chain.config.*;
 
+/**
+ * @version 0.4
+ */
 public class BasicTest {
-	BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-	ThreadPolicy threadPolicy = new ThreadPolicy(new ThreadChanger() {
-		@Override
-		public void runCallbackOnMainThread(Runnable runnable) {
-			queue.add(runnable);
-		}
-	}, Executors.newCachedThreadPool());
-	ActionChain chain = new ActionChain(threadPolicy);
-	
-	final Thread mainThread = Thread.currentThread();
-	
-	public boolean isMainThread() {
-		return Thread.currentThread() == mainThread;
-	}
-	
-	@Test
-	public void TestNoException_EveryCallbackIsInvokedInCorrectOrder() {
-		final StringBuilder ansBuilder = new StringBuilder();
-		Random random = new Random();
-		
-		class TestAction implements PureAction<Integer, Integer> {
-			public int name;
-			
-			public TestAction(int name) {
-				this.name = name;
-			}
-			
-			public Integer process(Integer input) throws Exception {
-				ansBuilder.append(String.valueOf(name));
-				return input + 1;
-			}
-		}
-		
-		chain.clear(new NiceConsumer<ErrorHolder>() {
-			public void consume(ErrorHolder arg) {
-				Assert.fail(arg.getCause().toString());
-			}
-		});
-		
-		//----------------------------------
-		
-		String correctAns = "";
-		int temp;
+    BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+    ThreadPolicy threadPolicy = new ThreadPolicy(runnable -> queue.add(runnable), Executors.newCachedThreadPool());
+    ActionChain chain = new ActionChain(threadPolicy);
 
-		chain.uiThen(() -> 0);
+    Thread mainThread = Thread.currentThread();
 
-		/*
-		chain.then(false, new PureAction<Object, Integer>() {
-			public Integer process(Object input) throws Exception {
-				return 0;
-			}
-		});
-		*/
+    public void updateMainThread(Thread thread) {mainThread = thread;}
+    public boolean isMainThread() {
+        return Thread.currentThread() == mainThread;
+    }
 
-		final int testLength = 100;
-		
-		for (int i = 0; i < testLength; i++) {
-			temp = random.nextInt();
-			correctAns += String.valueOf(temp);
-			chain.then(random.nextBoolean(), new TestAction(temp));
-		}
-		
-		// onSuccess should break the loop (see the while loop afterwards)
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		final Integer[] returnedPipeOutput = new Integer[1];
-		final int lastTest = random.nextInt();
-		correctAns += String.valueOf(lastTest);
-		chain.start(new NiceConsumer<Integer>() {
-			public void consume(Integer arg) {
-				ansBuilder.append(String.valueOf(lastTest));
-				returnedPipeOutput[0] = arg;
-				finished.set(true);
-			}
-		});
-		
-		// Simulate the Android Looper class
-		while (!finished.get())
-			try {
-				queue.take().run();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		
-		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
-		Assert.assertTrue("The IO pipe of Action Chain was messed up: " + (returnedPipeOutput[0]==null ? "null" : returnedPipeOutput[0])
-				, returnedPipeOutput[0] != null && returnedPipeOutput[0] == testLength);
-	}
-	
-	@Test
-	public void TestNoException_ClearFunctionWorks() {
-		chain = new ActionChain(threadPolicy, new NiceConsumer<ErrorHolder>() {
-			public void consume(ErrorHolder arg) {
-				Assert.fail(arg.getCause().toString());
-			}
-		});
-		final AtomicBoolean shouldFail = new AtomicBoolean(false);
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		chain.then(false, new PureAction<Object, Object>(){
-			public Object process(Object input) throws Exception {
-				if(shouldFail.get())
-					Assert.fail("chain.clear() did not remove all previous configurations!");
-				return null;
-			}
-		}).start(new NiceConsumer<Object>() {
-			public void consume(Object arg) {
-				finished.set(true);
-			}
-		});
-		
-		// Simulate the Android Looper class
-		while (!finished.get())
-			try {
-				queue.take().run();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		
-		// ----------- clear chain and start a new one --------------
-		
-		chain.clear(new NiceConsumer<ErrorHolder>() {
-			public void consume(ErrorHolder arg) {
-				Assert.fail(arg.getCause().toString());
-			}
-		});
-		shouldFail.set(true);
-		finished.set(false);
-		chain.start(new NiceConsumer<Object>() {
-			public void consume(Object arg) {
-				finished.set(true);
-			}
-		});
-		
-		// Simulate the Android Looper class
-		while (!finished.get())
-			try {
-				queue.take().run();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-	}
-	
-	@Test
-	public void TestNoException_SwitchThreadCorrectly() {
-		Random rand = new Random();
-		
-		chain.clear(new NiceConsumer<ErrorHolder>() {
-			public void consume(ErrorHolder arg) {
-				Assert.fail(arg.getCause().toString());
-			}
-		});
-		
-		PureAction<Object, Object> shouldRunOnMainThread = new PureAction<Object, Object>() {
-			public Object process(Object input) throws Exception {
-				Assert.assertTrue(isMainThread());
-				return null;
-			}
-		};
-		
-		PureAction<Object, Object> shouldRunOnWorkerThread = new PureAction<Object, Object>() {
-			public Object process(Object input) throws Exception {
-				Assert.assertTrue(!isMainThread());
-				return null;
-			}
-		};
-		
-		// onSuccess should break the loop (see the while loop afterwards)
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		NiceConsumer<Object> onSuccess = new NiceConsumer<Object>() {
-			public void consume(Object arg) {
-				finished.set(true);
-			}
-		};
-		
-		for(int i=0; i<100; i++) {
-			if(rand.nextBoolean()) {
-				chain.then(true, shouldRunOnWorkerThread);
-			} else chain.then(false, shouldRunOnMainThread);
-		}
-		chain.start(onSuccess);
-		
-		while (!finished.get())
-			try {
-				queue.take().run();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-	}
-	
-	@Test
-	public void TestNoException_HighlySynchronized() {
-		final StringBuilder ansBuilder = new StringBuilder();
-		final Integer[] notAtomicBlock = new Integer[] {0};
-		Random random = new Random();
-		
-		class TestAction implements PureAction<Object, Object> {
-			public boolean plus;
-			
-			public TestAction(boolean plus) {
-				this.plus = plus;
-			}
-			
-			public Object process(Object input) throws Exception {
-				int read = notAtomicBlock[0];
-				for(int i=0; i<100; i++)
-					ansBuilder.append(read);
-				if(plus)
-					read++;
-				else read--;
-				notAtomicBlock[0] = read;
-				return null;
-			}
-		}
-		
-		chain.clear(new NiceConsumer<ErrorHolder>() {
-			public void consume(ErrorHolder arg) {
-				Assert.fail(arg.getCause().toString());
-			}
-		});
-		
-		//----------------------------------
-		
-		StringBuilder correctAns = new StringBuilder();
-		boolean temp;
-		int current = 0;
-		
-		for (int i = 0; i < 100; i++) {
-			temp = random.nextBoolean();
-			for(int j=0; j<100; j++)
-				correctAns.append(current);
-			if(temp)
-				current++;
-			else current--;
-			chain.then(random.nextBoolean(), new TestAction(temp));
-		}
-		
-		// onSuccess should break the loop (see the while loop afterwards)
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		chain.start(new NiceConsumer<Object>() {
-			public void consume(Object arg) {
-				finished.set(true);
-			}
-		});
-		
-		// Simulate the Android Looper class
-		while (!finished.get())
-			try {
-				queue.take().run();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		
-		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns.toString(), ansBuilder.toString().equals(correctAns.toString()));
-	}
-	
+    @Test(timeout = 2000)
+    public void TestNoException_EveryCallbackIsInvokedInCorrectOrder() {
+        final int testLength = 100;
+        final StringBuilder ansBuilder = new StringBuilder();
+        String correctAns = "";
+        Random random = new Random();
+
+        chain.clear(errorHolder -> Assert.fail(errorHolder.getCause().toString())
+        ).netThen(() -> 0);
+
+        for (int i = 0; i < testLength; i++) {
+            final int temp = random.nextInt();
+            correctAns += String.valueOf(temp);
+            chain.then(random.nextBoolean(), (Integer input) -> {
+                ansBuilder.append(String.valueOf(temp));
+                return input + 1;
+            });
+        }
+
+        // onSuccess should break the loop (see the while loop afterwards)
+        final AtomicBoolean finished = new AtomicBoolean(false);
+        final Integer[] returnedPipeOutput = new Integer[1];
+        final int lastTest = random.nextInt();
+        correctAns += String.valueOf(lastTest);
+
+        updateMainThread(Thread.currentThread());
+
+        // collect output
+        chain.start((Integer arg) -> {
+            ansBuilder.append(String.valueOf(lastTest));
+            returnedPipeOutput[0] = arg;
+            finished.set(true);
+        });
+
+        // Simulate the Android Looper class
+        while (!finished.get())
+            try {
+                queue.take().run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
+        Assert.assertTrue("The IO pipe of Action Chain was messed up: " + (returnedPipeOutput[0] == null ? "null" : returnedPipeOutput[0])
+                , returnedPipeOutput[0] != null && returnedPipeOutput[0] == testLength);
+    }
+
+    @Test(timeout = 2000)
+    public void TestNoException_ClearFunctionWorks() {
+        final AtomicBoolean shouldFail = new AtomicBoolean(false);
+        final AtomicBoolean finished = new AtomicBoolean(false);
+
+        chain = new ActionChain(threadPolicy, failure -> Assert.fail(failure.getCause().toString()));
+        chain.netThen(input -> {
+            if (shouldFail.get())
+                Assert.fail("chain.clear() did not remove all previous configurations!");
+            return null;
+        }).start(arg -> finished.set(true));
+
+        // Simulate the Android Looper class
+        while (!finished.get())
+            try {
+                queue.take().run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        // ----------- clear chain and start a new one --------------
+        shouldFail.set(true);
+        finished.set(false);
+
+        updateMainThread(Thread.currentThread());
+
+        chain.clear(arg -> Assert.fail(arg.getCause().toString()));
+        chain.start(arg -> finished.set(true));
+
+        // Simulate the Android Looper class
+        while (!finished.get())
+            try {
+                queue.take().run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+    }
+
+    @Test(timeout = 2000)
+    public void TestNoException_SwitchThreadCorrectly() {
+        Random rand = new Random();
+
+        // onSuccess should break the loop (see the while loop afterwards)
+        final AtomicBoolean finished = new AtomicBoolean(false);
+
+        chain.clear(arg -> Assert.fail(arg.getCause().toString()));
+
+        for (int i = 0; i < 100; i++) {
+            if (rand.nextBoolean())
+                chain.uiThen(input -> {
+                    final boolean testResult = isMainThread();
+                    queue.add(() -> Assert.assertTrue(testResult));
+                });
+            else chain.netThen(input -> {
+                final boolean testResult = !isMainThread();
+                queue.add(() -> Assert.assertTrue(testResult));
+            });
+        }
+        chain.start(arg -> finished.set(true));
+
+        updateMainThread(Thread.currentThread());
+
+        while (!finished.get())
+            try {
+                queue.take().run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+    }
+
+    @Test(timeout = 2000)
+    public void TestNoException_HighlySynchronized() {
+        final StringBuilder ansBuilder = new StringBuilder();
+        final Integer[] notAtomicBlock = new Integer[]{0};
+        StringBuilder correctAns = new StringBuilder();
+        Random random = new Random();
+        int current = 0;
+
+        chain.clear(errorHolder -> Assert.fail(errorHolder.getCause().toString()));
+
+        for (int i = 0; i < 100; i++) {
+            final boolean temp = random.nextBoolean();
+            for (int j = 0; j < 100; j++)
+                correctAns.append(current);
+            if (temp)
+                current++;
+            else current--;
+            chain.then(random.nextBoolean(), input -> {
+                int read = notAtomicBlock[0];
+                for (int k = 0; k < 100; k++)
+                    ansBuilder.append(read);
+                if (temp)
+                    read++;
+                else read--;
+                notAtomicBlock[0] = read;
+            });
+        }
+
+        updateMainThread(Thread.currentThread());
+
+        // onSuccess should break the loop (see the while loop afterwards)
+        final AtomicBoolean finished = new AtomicBoolean(false);
+        chain.start(arg -> finished.set(true));
+
+        // Simulate the Android Looper class
+        while (!finished.get())
+            try {
+                queue.take().run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        Assert.assertTrue(ansBuilder.toString() + " != " + correctAns.toString(), ansBuilder.toString().equals(correctAns.toString()));
+    }
+
 }

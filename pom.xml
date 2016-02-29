@@ -3,12 +3,18 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.C4Phone</groupId>
 	<artifactId>action-chain</artifactId>
-	<version>0.3</version>
+	<version>0.4-snapshot</version>
 	<name>Smart Action Chain</name>
 	<description>This is a Java library that:
-  1. Run different actions on either main/ui thread, or a worker thread, determined by the user.
-  2. Avoid callback hell and help you write code in a chain style, similar to promise-then.
-  3. New features of version 0.3: ChainEditor and maybe ActionChain.append(ActionChain)</description>
+        1. Run different actions on either main/ui thread, or a worker thread, determined by the user.
+        2. Avoid callback hell and help you write code in a chain style, similar to promise-then.
+        3. New features in version 0.3: ChainEditor as a requested feature.
+        4. New features in version 0.4:
+            Writing tests using Retrolambda.
+            Enable passing Producer and Consumer into then().
+            ChainEditor became deprecated -- instead, one should return new ActionChains inside the callback.
+
+	</description>
 	<url>https://github.com/C4Phone/SmartActionChain</url>
 	<licenses>
 		<license>

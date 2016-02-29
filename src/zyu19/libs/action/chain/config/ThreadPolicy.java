@@ -1,8 +1,5 @@
 package zyu19.libs.action.chain.config;
 
-import zyu19.libs.action.chain.callbacks.NiceConsumer;
-import zyu19.libs.action.chain.callbacks.ThreadChanger;
-
 import java.util.concurrent.ExecutorService;
 
 /**

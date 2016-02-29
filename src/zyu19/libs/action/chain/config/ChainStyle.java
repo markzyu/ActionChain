@@ -1,10 +1,6 @@
 package zyu19.libs.action.chain.config;
 
 import zyu19.libs.action.chain.ReadOnlyChain;
-import zyu19.libs.action.chain.callbacks.Consumer;
-import zyu19.libs.action.chain.callbacks.NiceConsumer;
-import zyu19.libs.action.chain.callbacks.Producer;
-import zyu19.libs.action.chain.callbacks.PureAction;
 
 /**
  * This interface restricts ActionChain to avoid callback hell, and to enable
@@ -16,7 +12,7 @@ import zyu19.libs.action.chain.callbacks.PureAction;
  * Created on 7/24/2015.
  * @author Zhongzhi Yu 
  * 
- * @version 0.3
+ * @version 0.4
  */
 public interface ChainStyle <ThisType extends ChainStyle<?>> {
 	/**
@@ -66,15 +62,12 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 		return (ThisType)this;
 	}
 
-	default <In> ThisType then(boolean runOnWorkerThread, Consumer<In> action) {
-		then(runOnWorkerThread, (In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
 
-	default <In> ThisType then(boolean runOnWorkerThread, NiceConsumer<In> action) {
+	/**
+	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
+	 please always pass in lambda with "{}" wrapping the function body
+	 */
+	default <In> ThisType then(boolean runOnWorkerThread, Consumer<In> action) {
 		then(runOnWorkerThread, (In in) -> {
 			action.consume(in);
 			return null;
@@ -97,6 +90,12 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 		return (ThisType)this;
 	}
 
+
+	/**
+	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
+	 please always pass in lambda with "{}" wrapping the function body
+	 */
+
 	default <In> ThisType netThen(Consumer<In> action) {
 		netThen((In in) -> {
 			action.consume(in);
@@ -104,15 +103,6 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 		});
 		return (ThisType)this;
 	}
-
-	default <In> ThisType netThen(NiceConsumer<In> action) {
-		netThen((In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
-
 
 	/**
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>main (UI)</strong> thread.
@@ -128,15 +118,11 @@ public interface ChainStyle <ThisType extends ChainStyle<?>> {
 		return (ThisType)this;
 	}
 
+	/**
+	 * In order to prevent compiler from being confused, ONLY IN THE CASE OF Consumer,
+	 please always pass in lambda with "{}" wrapping the function body
+	 */
 	default <In> ThisType uiThen(Consumer<In> action) {
-		uiThen((In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
-
-	default <In> ThisType uiThen(NiceConsumer<In> action) {
 		uiThen((In in) -> {
 			action.consume(in);
 			return null;
