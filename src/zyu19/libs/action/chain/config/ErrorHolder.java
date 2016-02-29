@@ -50,13 +50,13 @@ package zyu19.libs.action.chain.config;
  * 
  * @version 0.1
  */
-public interface ErrorHolder {
+public interface ErrorHolder <E extends Exception> {
 	/**
 	 * get the Exception that halted ActionChain
 	 * @return the Exception that halted ActionChain
 	 * @see ErrorHolder
 	 */
-	Exception getCause();
+	E getCause();
 	
 	/**
 	 * prevent ActionChain from exiting and force it to rerun the last PureAction

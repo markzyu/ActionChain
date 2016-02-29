@@ -55,13 +55,15 @@ public class BasicTest {
 
         // collect output
         chain.start((Integer arg) -> {
+            final boolean testResult = isMainThread();
+            queue.add(() -> Assert.assertTrue(testResult));
             ansBuilder.append(String.valueOf(lastTest));
             returnedPipeOutput[0] = arg;
             finished.set(true);
         });
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -81,12 +83,12 @@ public class BasicTest {
         chain = new ActionChain(threadPolicy, failure -> Assert.fail(failure.getCause().toString()));
         chain.netThen(input -> {
             if (shouldFail.get())
-                Assert.fail("chain.clear() did not remove all previous configurations!");
+                queue.add(() -> Assert.fail("chain.clear() did not remove all previous configurations!"));
             return null;
         }).start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -103,7 +105,7 @@ public class BasicTest {
         chain.start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -135,7 +137,7 @@ public class BasicTest {
 
         updateMainThread(Thread.currentThread());
 
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -178,7 +180,7 @@ public class BasicTest {
         chain.start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {

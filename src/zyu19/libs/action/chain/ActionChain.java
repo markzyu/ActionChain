@@ -6,6 +6,9 @@ import zyu19.libs.action.chain.config.ChainEditor;
 import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * For usages of this class, please refer to javadoc of ChainStyle and ErrorHolder.
  * <p>
@@ -51,6 +54,15 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 	public ActionChain use(ChainEditor editor) {
 		editor.edit(this);
 		return this;
+	}
+
+	public static ReadOnlyChain all(Object... objects) {
+		return return all(Arrays.asList(objects));
+	}
+
+	public static ReadOnlyChain all(List objects) {
+		// TODO: (v0.4) implement something like Promise.all
+		return null;
 	}
 	
 }

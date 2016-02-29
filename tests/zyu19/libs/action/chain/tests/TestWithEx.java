@@ -54,6 +54,8 @@ public class TestWithEx {
 		
 		new ActionChain(threadPolicy).fail(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
+				final boolean testResult = isMainThread();
+				queue.add(() -> Assert.assertTrue(testResult));
 				Assert.assertNotNull(arg);
 				Assert.assertNotNull(arg.getCause());
 				Assert.assertTrue("getCause() not correct.", arg.getCause().equals(err) || (getInnerMostEx(arg.getCause()) != null ? getInnerMostEx(arg.getCause()).equals(err) : false));
@@ -65,7 +67,7 @@ public class TestWithEx {
 			}
 		}).then(true, new PureAction<Object, Object>() {
 			public Object process(Object input) throws Exception {
-				Assert.fail("ActionChain is not halted after exception is thrown (retry() not called)");
+				queue.add(() -> Assert.fail("ActionChain is not halted after exception is thrown (retry() not called)"));
 				return null;
 			}
 		}).start(new NiceConsumer<Object>() {
@@ -76,7 +78,7 @@ public class TestWithEx {
 		});
 		
 		// Simulate the Android Looper class
-		while (!finished.get())
+		while (!finished.get() || !queue.isEmpty())
 			try {
 				queue.take().run();
 			} catch (InterruptedException e) {
@@ -169,16 +171,14 @@ public class TestWithEx {
 			final int lastTest = random.nextInt();
 			correctAns += String.valueOf(lastTest);
 			
-			chain.start(new NiceConsumer<Object>() {
-				public void consume(Object arg) {
-					ansBuilder.append(String.valueOf(lastTest));
-					finished.set(true);
-				}
-			});
+			chain.start(arg -> {
+                ansBuilder.append(String.valueOf(lastTest));
+                finished.set(true);
+            });
 		}
 		
 		// Simulate the Android Looper class
-		while (!finished.get())
+		while (!finished.get() || !queue.isEmpty())
 			try {
 				queue.take().run();
 				Thread.sleep(10);
@@ -188,4 +188,5 @@ public class TestWithEx {
 		
 		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
 	}
+	// TODO: (v0.4) add tests about ChainStyle.fail(claz, handler)
 }
