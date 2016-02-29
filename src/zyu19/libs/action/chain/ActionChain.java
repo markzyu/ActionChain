@@ -57,7 +57,7 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 	}
 
 	public static ReadOnlyChain all(Object... objects) {
-		return return all(Arrays.asList(objects));
+		return all(Arrays.asList(objects));
 	}
 
 	public static ReadOnlyChain all(List objects) {
