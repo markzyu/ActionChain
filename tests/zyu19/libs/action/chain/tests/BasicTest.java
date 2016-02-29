@@ -61,7 +61,7 @@ public class BasicTest {
         });
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -86,7 +86,7 @@ public class BasicTest {
         }).start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -103,7 +103,7 @@ public class BasicTest {
         chain.start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -135,7 +135,7 @@ public class BasicTest {
 
         updateMainThread(Thread.currentThread());
 
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {
@@ -178,7 +178,7 @@ public class BasicTest {
         chain.start(arg -> finished.set(true));
 
         // Simulate the Android Looper class
-        while (!finished.get())
+        while (!finished.get() || !queue.isEmpty())
             try {
                 queue.take().run();
             } catch (InterruptedException e) {

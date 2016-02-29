@@ -91,7 +91,7 @@ public class ReturnedChain {
 		});
 
 		// Simulate the Android Looper class
-		while (!finished.get())
+		while (!finished.get() || !queue.isEmpty())
 			try {
 				queue.take().run();
 			} catch (InterruptedException e) {

@@ -54,6 +54,8 @@ public class TestWithEx {
 		
 		new ActionChain(threadPolicy).fail(new NiceConsumer<ErrorHolder>() {
 			public void consume(ErrorHolder arg) {
+				final boolean testResult = isMainThread();
+				queue.add(() -> Assert.assertTrue(testResult));
 				Assert.assertNotNull(arg);
 				Assert.assertNotNull(arg.getCause());
 				Assert.assertTrue("getCause() not correct.", arg.getCause().equals(err) || (getInnerMostEx(arg.getCause()) != null ? getInnerMostEx(arg.getCause()).equals(err) : false));
@@ -70,13 +72,15 @@ public class TestWithEx {
 			}
 		}).start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
+				final boolean testResult = isMainThread();
+				queue.add(() -> Assert.assertTrue(testResult));
 				Assert.fail("onSuccess is run after exception is thrown (retry() not called)");
 				finished.set(true);
 			}
 		});
 		
 		// Simulate the Android Looper class
-		while (!finished.get())
+		while (!finished.get() || !queue.isEmpty())
 			try {
 				queue.take().run();
 			} catch (InterruptedException e) {
@@ -178,7 +182,7 @@ public class TestWithEx {
 		}
 		
 		// Simulate the Android Looper class
-		while (!finished.get())
+		while (!finished.get() || !queue.isEmpty())
 			try {
 				queue.take().run();
 				Thread.sleep(10);
