@@ -54,7 +54,6 @@ public class ReturnedChain {
 
 			final Integer[] inputRecord = new Integer[1];
 			chain.then(random.nextBoolean(), (Integer input) -> {
-				System.out.println("!! In chain " + thisI);
 				ansBuilder.append("Start");
 				ansBuilder.append(temp);
 				ansBuilder.append("Sub");
@@ -62,7 +61,6 @@ public class ReturnedChain {
 				for (int j = 0; j < subTestLength; j++) {
 					final int thisJ = j;
 					subChain.then(random.nextBoolean(), obj -> {
-						System.out.println("In subchain" + thisJ + ".");
 						ansBuilder.append(thisI);
 						ansBuilder.append(", ");
 						ansBuilder.append(thisJ);
@@ -70,7 +68,7 @@ public class ReturnedChain {
 					});
 				}
 				inputRecord[0] = input;
-				return subChain.start(obj -> System.out.println("INNER SUCCESS"));
+				return subChain.start(obj -> {});
 			}).uiThen(obj -> {
 				ansBuilder.append("End");
 				return inputRecord[0] + 1;
@@ -87,7 +85,6 @@ public class ReturnedChain {
 
 		// collect output
 		chain.start((Integer arg) -> {
-			System.out.println("ON SUCCESS");
 			ansBuilder.append(String.valueOf(lastTest));
 			returnedPipeOutput[0] = arg;
 			finished.set(true);
