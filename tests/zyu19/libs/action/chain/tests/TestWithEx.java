@@ -72,8 +72,6 @@ public class TestWithEx {
 			}
 		}).start(new NiceConsumer<Object>() {
 			public void consume(Object arg) {
-				final boolean testResult = isMainThread();
-				queue.add(() -> Assert.assertTrue(testResult));
 				Assert.fail("onSuccess is run after exception is thrown (retry() not called)");
 				finished.set(true);
 			}
@@ -173,12 +171,10 @@ public class TestWithEx {
 			final int lastTest = random.nextInt();
 			correctAns += String.valueOf(lastTest);
 			
-			chain.start(new NiceConsumer<Object>() {
-				public void consume(Object arg) {
-					ansBuilder.append(String.valueOf(lastTest));
-					finished.set(true);
-				}
-			});
+			chain.start(arg -> {
+                ansBuilder.append(String.valueOf(lastTest));
+                finished.set(true);
+            });
 		}
 		
 		// Simulate the Android Looper class

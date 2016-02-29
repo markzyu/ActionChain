@@ -55,6 +55,8 @@ public class BasicTest {
 
         // collect output
         chain.start((Integer arg) -> {
+            final boolean testResult = isMainThread();
+            queue.add(() -> Assert.assertTrue(testResult));
             ansBuilder.append(String.valueOf(lastTest));
             returnedPipeOutput[0] = arg;
             finished.set(true);
