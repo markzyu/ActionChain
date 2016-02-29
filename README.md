@@ -1,8 +1,10 @@
 # Smart ActionChain
+[![](https://jitpack.io/v/C4Phone/SmartActionChain.svg)](https://jitpack.io/#C4Phone/SmartActionChain) 
+[![Circle CI](https://circleci.com/gh/C4Phone/SmartActionChain.svg?style=shield)](https://circleci.com/gh/C4Phone/SmartActionChain)
+
 
 Event handling with untangled thoughts.
 
-[![](https://jitpack.io/v/C4Phone/SmartActionChain.svg)](https://jitpack.io/#C4Phone/SmartActionChain)
 
 ## Diagram illustration
 #### We turn this tangled thought:
