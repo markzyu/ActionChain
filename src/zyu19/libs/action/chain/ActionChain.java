@@ -2,7 +2,6 @@ package zyu19.libs.action.chain;
 
 import zyu19.libs.action.chain.config.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
-import zyu19.libs.action.chain.config.ChainEditor;
 import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
@@ -40,29 +39,4 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 		super(threadPolicy, onFailure);
 	}
 
-	/**
-	 * @deprecated Use of this function is now discouraged. <br>
-	 *   The editor of the chain might change the default exception handler, and has to change the i/o flow among
-	 *   current chain's PureActions.
-	 *   <br>
-	 *
-	 *   These problems can be avoid by returning a new ActionChain
-	 *   inside a PureAction. This works exactly the same as the way a Promise wait for another promise if that second
-	 *   promise was returned inside the first promise's actions.
-     */
-	@Deprecated
-	public ActionChain use(ChainEditor editor) {
-		editor.edit(this);
-		return this;
-	}
-
-	public static ReadOnlyChain all(Object... objects) {
-		return all(Arrays.asList(objects));
-	}
-
-	public static ReadOnlyChain all(List objects) {
-		// TODO: (v0.4) implement something like Promise.all
-		return null;
-	}
-	
 }

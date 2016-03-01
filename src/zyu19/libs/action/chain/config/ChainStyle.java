@@ -14,7 +14,7 @@ import zyu19.libs.action.chain.ReadOnlyChain;
  * 
  * @version 0.4
  */
-public interface ChainStyle <ThisType extends ChainStyle<?>> {
+public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	/**
 	 *  Start running the 'PureAction' objects in ChainStyle.
 	 *  <p>

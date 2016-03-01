@@ -1,6 +1,8 @@
 package zyu19.libs.action.chain;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import zyu19.libs.action.chain.config.PureAction;
 import zyu19.libs.action.chain.config.*;
@@ -22,7 +24,7 @@ import zyu19.libs.action.chain.config.NiceConsumer;
  * 
  * @version 0.3
  */
-public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?>> implements ChainStyle<ThisType> {
+public abstract class AbstractActionChain<ThisType extends AbstractActionChain<ThisType>> implements ChainStyle<ThisType> {
 
 	//------------- public functions (FakePromise Interface) ----------------
 
@@ -89,5 +91,16 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<?
 	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<ErrorHolder> onFailure) {
 		mThreadPolicy = threadPolicy;
 		mCurrentOnFailure = onFailure;
+	}
+
+	// ------------ STATIC HELPERS ----------------
+
+	public static ReadOnlyChain all(Object... objects) {
+		return all(Arrays.asList(objects));
+	}
+
+	public static ReadOnlyChain all(List objects) {
+		// TODO: (v0.4) implement something like Promise.all
+		return null;
 	}
 }
