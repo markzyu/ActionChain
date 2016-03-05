@@ -1,7 +1,11 @@
 package zyu19.libs.action.chain;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import zyu19.libs.action.chain.config.DotAll;
 import zyu19.libs.action.chain.config.NiceConsumer;
 import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ThreadPolicy;
@@ -42,6 +46,8 @@ public class ReadOnlyChain implements ErrorHolder {
     private final ThreadPolicy mThreadPolicy;
     private NiceConsumer mOnSuccess;
 
+    private Integer numPendingSubChains = null;
+
     /**
      * Constructor of ReadOnlyChain.
      *
@@ -79,11 +85,31 @@ public class ReadOnlyChain implements ErrorHolder {
             ChainLink action = mActionSequence.get(mNextAction);
             try {
                 mLastActionOutput = action.pureAction.process(mLastActionOutput);
-                if (mLastActionOutput instanceof ReadOnlyChain && mLastActionOutput != this) {
+                Set<ReadOnlyChain> filteredTargets = new HashSet<>();
+                List<Runnable> errHandlersToRun = new ArrayList<>();
+
+                if (mLastActionOutput instanceof DotAll) {
+                    // Version 0.4: support waiting for ActionChain.all() (this is the point of using .all()...)
+                    List<Object> targets = ((DotAll) mLastActionOutput).objects;
+                    for(Object obj : targets) {
+                        if(obj instanceof ReadOnlyChain)
+                            filteredTargets.add((ReadOnlyChain)obj);
+                    }
+
+                    filteredTargets.remove(this);
+                }
+                else if (mLastActionOutput instanceof ReadOnlyChain && mLastActionOutput != this) {
                     // Version 0.3: support waiting for inner ActionChains
-                    synchronized (mLastActionOutput) {
+                    // The returned ReadOnlyChain is detected here
+                    filteredTargets.add((ReadOnlyChain) mLastActionOutput);
+                }
+
+                numPendingSubChains = filteredTargets.size();
+
+                // wait for all ReadOnlyChains in filteredTargets
+                for(ReadOnlyChain that : filteredTargets) {
+                    synchronized (that) {
                         // Pending, Success, Failed w/ handler in progress, Failed & finished
-                        ReadOnlyChain that = (ReadOnlyChain) mLastActionOutput;
                         boolean discardThatChain = false;
                         boolean runErrorHolderOnThat = false;
                         if (that.executionFinished) {
@@ -111,27 +137,47 @@ public class ReadOnlyChain implements ErrorHolder {
 
                             // Add the callback
                             final NiceConsumer wrapped = that.mOnSuccess;
-                            final int resumePoint = mNextAction + 1;
+                            final int resumePoint = mNextAction + 1;        // the resume point is the same for all subChains
                             NiceConsumer wrapper = input -> {
                                 if(wrapped != null)
                                     wrapped.consume(input);
-                                ReadOnlyChain.this.mNextAction = resumePoint;
-                                ReadOnlyChain.this.iterate();
+
+                                // resume current chain. Detect count of finished actions here.
+                                synchronized (ReadOnlyChain.this) {
+                                    ReadOnlyChain.this.numPendingSubChains --;
+                                    if(ReadOnlyChain.this.numPendingSubChains == 0) {
+                                        ReadOnlyChain.this.mNextAction = resumePoint;
+                                        ReadOnlyChain.this.iterateNoLock();
+                                    }
+                                }
                             };
                             that.mOnSuccess = wrapper;
-
-                            // Finally PAUSE this chain.
-                            mNextAction = Integer.MAX_VALUE;
 
                             // Call error holder to restart that chain if necessary (and if wanted)
                             if (runErrorHolderOnThat) {
                                 that.mActionSequence.get(that.mCauseLink).errorHandler = action.errorHandler;
-                                that.mThreadPolicy.switchAndRun(action.errorHandler, that);
+                                errHandlersToRun.add(() -> action.errorHandler.consume(that));
                             }
-                            return;
+
+                        } else {
+                            // If we discard that chain, we immediately decrease the numPendingSubChains counter here
+                            numPendingSubChains --;
                         }
                     }
                 }
+
+                // run all error handlers to determine whether to resume the subChain
+                threadPolicy.switchAndRun(() -> {
+                    for(Runnable runnable : errHandlersToRun)
+                        runnable.run();
+                });
+
+                if(numPendingSubChains != null && numPendingSubChains > 0) {
+                    // Finally PAUSE this chain.
+                    mNextAction = Integer.MAX_VALUE;
+                    return;
+                }
+
             } catch (Exception err) {
                 executionFinished = true;
                 mCause = err;
@@ -146,16 +192,20 @@ public class ReadOnlyChain implements ErrorHolder {
 
     private final void iterate() {
         synchronized (ReadOnlyChain.this) {
-            mCause = null;
-            mCauseLink = -1;
-            executionFinished = false;
-            if (isIterationOver()) {
-                executionFinished = true;
-                return;
-            }
-            ChainLink action = mActionSequence.get(mNextAction);
-            callIteratorOnProperThread(action);
+            iterateNoLock();
         }
+    }
+
+    private final void iterateNoLock() {
+        mCause = null;
+        mCauseLink = -1;
+        executionFinished = false;
+        if (isIterationOver()) {
+            executionFinished = true;
+            return;
+        }
+        ChainLink action = mActionSequence.get(mNextAction);
+        callIteratorOnProperThread(action);
     }
 
     protected void callIteratorOnProperThread(ChainLink actionConfig) {

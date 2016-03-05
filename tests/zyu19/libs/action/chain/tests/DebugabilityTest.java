@@ -4,8 +4,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import zyu19.libs.action.chain.ActionChain;
+import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -43,7 +45,7 @@ public class DebugabilityTest {
         updateMainThread(Thread.currentThread());
     }
 
-    public void AfterTests() {
+    public void StartTests() {
         // Simulate the Android Looper class
         while (!finished.get() || !queue.isEmpty())
             try {
@@ -61,7 +63,7 @@ public class DebugabilityTest {
         ).thenConsume(random.nextBoolean(), obj -> System.out.println(nullInt + 1)
         ).start(obj -> Assert.fail("should crash"));
 
-        AfterTests();
+        StartTests();
     }
 
     @Test(timeout = 2000, expected = NullPointerException.class)
@@ -74,7 +76,7 @@ public class DebugabilityTest {
             System.out.println(nullInt + 1);
         });
 
-        AfterTests();
+        StartTests();
     }
 
     @Test(timeout = 2000, expected = NullPointerException.class)
@@ -90,7 +92,7 @@ public class DebugabilityTest {
         }).then(random.nextBoolean(), obj -> 123
         ).start((Integer obj) -> Assert.assertTrue(obj == 123));
 
-        AfterTests();
+        StartTests();
     }
 
     @Test(timeout = 2000, expected = NullPointerException.class)
@@ -107,7 +109,7 @@ public class DebugabilityTest {
         }).then(random.nextBoolean(), obj -> 123
         ).start((Integer obj) -> Assert.assertTrue(obj == 123));
 
-        AfterTests();
+        StartTests();
     }
 
     @Test(timeout = 2000, expected = NullPointerException.class)
@@ -124,9 +126,65 @@ public class DebugabilityTest {
             Assert.fail("should not have succeeded");
         });
 
-        AfterTests();
+        StartTests();
     }
 
-    // TODO: (v0.4) add tests about converting between ErrorHandler<T> and ErrorHandler<E> where E != T, when using ChainStyle.fail(claz, handler)
+    @Test(timeout = 2000)
+    public void TestTypeConversion() {
+        // This test should prove that Type conversion errors will be caught by ".fail()" error handlers
+        chain.clear(errorHolder -> finished.set(true)
+        ).then(random.nextBoolean(), obj -> true
+        ).then(random.nextBoolean(), (Integer obj) -> {
+            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
+                System.out.println(obj + 1);
+            }).start(innerans -> Assert.fail("should not have succeeded"));
+        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
+            Assert.fail("should not have succeeded");
+        });
 
+        StartTests();
+    }
+
+
+    // TODO: (v0.4) add tests about error handler targeted at specific exception types
+
+    @Test(timeout = 2000)
+    public void TestErrorHandlerWithFilter() {
+        Integer nullInt = null;
+
+        chain.clear(errorHolder -> {
+            Assert.assertTrue(errorHolder.getCause() instanceof NullPointerException);
+            finished.set(true);
+        }).fail(IOException.class, errorHolder -> {
+            Assert.fail("should not have caught IOException.");
+        }).then(random.nextBoolean(), obj -> {
+            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
+                System.out.println(nullInt + 1);
+            }).start(innerans -> Assert.fail("should not have succeeded"));
+        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
+            Assert.fail("should not have succeeded");
+        });
+
+        StartTests();
+    }
+
+    @Test(timeout = 2000)
+    public void TestErrorHandlerWithFilter2() {
+        Integer nullInt = null;
+
+        chain.clear(errorHolder -> {
+            Assert.fail("should not have caught other exceptions.");
+        }).fail(NullPointerException.class, errorHolder -> {
+            // this is enough for an "assert" for success
+            finished.set(true);
+        }).then(random.nextBoolean(), obj -> {
+            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
+                System.out.println(nullInt + 1);
+            }).start(innerans -> Assert.fail("should not have succeeded"));
+        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
+            Assert.fail("should not have succeeded");
+        });
+
+        StartTests();
+    }
 }

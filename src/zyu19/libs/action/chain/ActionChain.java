@@ -5,6 +5,7 @@ import zyu19.libs.action.chain.config.ErrorHolder;
 import zyu19.libs.action.chain.config.ChainStyle;
 import zyu19.libs.action.chain.config.ThreadPolicy;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,4 +40,7 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 		super(threadPolicy, onFailure);
 	}
 
+	public ActionChain(ThreadPolicy threadPolicy, NiceConsumer<AbstractActionChain> chainTemplate, Object argument) {
+		super(threadPolicy, chainTemplate, argument);
+	}
 }

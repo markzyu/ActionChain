@@ -93,14 +93,34 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 		mCurrentOnFailure = onFailure;
 	}
 
+	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<AbstractActionChain> chainTemplate, Object argument) {
+		mThreadPolicy = threadPolicy;
+		this.netThen(() -> argument);
+		chainTemplate.consume(this);
+	}
+
+
 	// ------------ STATIC HELPERS ----------------
 
-	public static ReadOnlyChain all(Object... objects) {
+	public static DotAll all(Object... objects) {
 		return all(Arrays.asList(objects));
 	}
 
-	public static ReadOnlyChain all(List objects) {
-		// TODO: (v0.4) implement something like Promise.all
-		return null;
+	/**
+	 * Usage:
+	 *
+	 * chain.then(obj -&gt; ActionChain.all(1,2,new ActionChain(...).then(obj -&gt; 3).start())).start(ans -&gt; {
+	 *     // here you will find out that ans = [1,2,3]
+	 * }
+	 *
+	 * Note: using .all may start all actions in parallel (depending on how you started that list of ActionChains in the first place)
+	 * but there may be a limit of maximum parallel thread,
+	 * depending on how you instantiate the threadPolicy.
+	 * @param objects if some objects in this list are created by ActionChain, this ActionChain will wait for them. Other objects will be
+	 *                directly put into the list returned result
+     * @return the object you should return inside the .then()
+     */
+	public static DotAll all(List<Object> objects) {
+		return new DotAll(objects);
 	}
 }
