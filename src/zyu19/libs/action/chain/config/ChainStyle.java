@@ -30,6 +30,21 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	<In> ReadOnlyChain start(NiceConsumer<In> onSuccess);
 
 	/**
+	 *  Start running the 'PureAction' objects in ChainStyle, without a onSuccess listener --
+	 *  useful for returning subChains inside another Chain's .then()
+	 *  <p>
+	 *  Your actions will be copied to another object so that
+	 *  you can call clear() immediately after start().
+	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
+	 * @return an Object representing the sequence of PureAction you created. Usually
+	 * this object is useless but if you return this object inside another PureAction,
+	 * then that PureAction will wait for this chain of actions to finish before it can finish.
+	 */
+	default <In> ReadOnlyChain start() {
+		return start(null);
+	}
+
+	/**
 	 * Clear all actions. You can call this function after start() so as to arrange a
 	 * new sequence of actions.
 	 * @param onFailure the new onFailure callback for actions added afterwards. It

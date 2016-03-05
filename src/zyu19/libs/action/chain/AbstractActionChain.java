@@ -93,10 +93,10 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 		mCurrentOnFailure = onFailure;
 	}
 
-	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<AbstractActionChain> chainTemplate, Object argument) {
+	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<ThisType> chainTemplate, Object argument) {
 		mThreadPolicy = threadPolicy;
 		this.netThen(() -> argument);
-		chainTemplate.consume(this);
+		chainTemplate.consume((ThisType)this);
 	}
 
 

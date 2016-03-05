@@ -40,7 +40,7 @@ public class ActionChain extends AbstractActionChain<ActionChain> {
 		super(threadPolicy, onFailure);
 	}
 
-	public ActionChain(ThreadPolicy threadPolicy, NiceConsumer<AbstractActionChain> chainTemplate, Object argument) {
+	public ActionChain(ThreadPolicy threadPolicy, NiceConsumer<ActionChain> chainTemplate, Object argument) {
 		super(threadPolicy, chainTemplate, argument);
 	}
 }

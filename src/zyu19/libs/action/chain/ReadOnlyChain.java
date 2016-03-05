@@ -1,9 +1,6 @@
 package zyu19.libs.action.chain;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import zyu19.libs.action.chain.config.DotAll;
 import zyu19.libs.action.chain.config.NiceConsumer;
@@ -86,23 +83,33 @@ public class ReadOnlyChain implements ErrorHolder {
             try {
                 mLastActionOutput = action.pureAction.process(mLastActionOutput);
                 Set<ReadOnlyChain> filteredTargets = new HashSet<>();
+                HashMap<ReadOnlyChain, Integer> positions = new HashMap<>();
                 List<Runnable> errHandlersToRun = new ArrayList<>();
+                boolean replaceOutputWithTarget = false;
+                List<Object> targets;
 
                 if (mLastActionOutput instanceof DotAll) {
                     // Version 0.4: support waiting for ActionChain.all() (this is the point of using .all()...)
-                    List<Object> targets = ((DotAll) mLastActionOutput).objects;
-                    for(Object obj : targets) {
-                        if(obj instanceof ReadOnlyChain)
-                            filteredTargets.add((ReadOnlyChain)obj);
+                    targets = ((DotAll) mLastActionOutput).objects;
+                    for(int i = 0; i < targets.size(); i++) {
+                        Object obj = targets.get(i);
+                        if(obj instanceof ReadOnlyChain) {
+                            filteredTargets.add((ReadOnlyChain) obj);
+                            positions.put((ReadOnlyChain) obj, i);
+                        }
                     }
 
                     filteredTargets.remove(this);
+                    replaceOutputWithTarget = true;
                 }
                 else if (mLastActionOutput instanceof ReadOnlyChain && mLastActionOutput != this) {
                     // Version 0.3: support waiting for inner ActionChains
                     // The returned ReadOnlyChain is detected here
+                    replaceOutputWithTarget = true;
+                    targets = Arrays.asList((ReadOnlyChain) mLastActionOutput);
                     filteredTargets.add((ReadOnlyChain) mLastActionOutput);
-                }
+                    positions.put((ReadOnlyChain) mLastActionOutput, 0);
+                } else targets = Arrays.asList();
 
                 numPendingSubChains = filteredTargets.size();
 
@@ -144,8 +151,11 @@ public class ReadOnlyChain implements ErrorHolder {
 
                                 // resume current chain. Detect count of finished actions here.
                                 synchronized (ReadOnlyChain.this) {
+                                    int pos = positions.get(that);
+                                    targets.set(pos, input);
                                     ReadOnlyChain.this.numPendingSubChains --;
                                     if(ReadOnlyChain.this.numPendingSubChains == 0) {
+                                        ReadOnlyChain.this.mLastActionOutput = targets;
                                         ReadOnlyChain.this.mNextAction = resumePoint;
                                         ReadOnlyChain.this.iterateNoLock();
                                     }
@@ -160,6 +170,10 @@ public class ReadOnlyChain implements ErrorHolder {
                             }
 
                         } else {
+                            // We discard that chain only if it's successful (see code above)
+                            // so we can directly replace the element in list
+                            int pos = positions.get(that);
+                            targets.set(pos, that.mLastActionOutput);
                             // If we discard that chain, we immediately decrease the numPendingSubChains counter here
                             numPendingSubChains --;
                         }
@@ -176,6 +190,9 @@ public class ReadOnlyChain implements ErrorHolder {
                     // Finally PAUSE this chain.
                     mNextAction = Integer.MAX_VALUE;
                     return;
+                } else {
+                    if(replaceOutputWithTarget)
+                        mLastActionOutput = targets;
                 }
 
             } catch (Exception err) {
