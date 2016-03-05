@@ -9,6 +9,10 @@ import zyu19.libs.action.chain.ReadOnlyChain;
  * <p>
  * Although this looks like Promise, it does NOT follow the standard of Promise-Then.
  * <p>
+ * Note: You could return a "new ActionChain. ... .start()" (which is called a subChain) inside a ".then()", which will force
+ * the outermost ActionChain wait for the subChain. The result of the subChain will also be passed to the next ".then()" in
+ * outermost ActionChain.
+ * <p>
  * Created on 7/24/2015.
  * @author Zhongzhi Yu 
  * 
@@ -70,7 +74,8 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * @param claz specifying the type of Exception you want to catch, other types will not be caught.
 	 * @param onFailure a callback to be invoked when any Exception is thrown from "actions"
 	 * (or 'PureAction' objects).
-	 * @return this object, thus enabling method chaining.
+	 * @param <T> The type of Exception that this handler is looking for
+	 * @return this object, thus enabling method chaining
 	 */
 	<T extends Exception> ThisType fail(Class<T> claz, NiceConsumer<ErrorHolder<T>> onFailure);
 
@@ -78,7 +83,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle.
 	 * @param runOnWorkerThread if set to false, the action will run on the main thread (UI thread)
 	 * specified by ThreadChanger. Otherwise the task will run on any other thread (worker thread).
-	 * @param action the PureAction to be added.
+	 * @param action the action to be added.
 	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
 	 * @param <Out> The output type of this action. Lambda will automatically set this template parameter.
 	 * @return this object, thus enabling method chaining.
@@ -94,6 +99,11 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	/**
 	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
 	 * this is similar to then except that the callback does not need to return anything.
+	 * @param runOnWorkerThread if set to false, the action will run on the main thread (UI thread)
+	 * specified by ThreadChanger. Otherwise the task will run on any other thread (worker thread).
+	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
+	 * @param action the action to be added.
+	 * @return this object, thus enabling method chaining.
 	 */
 	default <In> ThisType thenConsume(boolean runOnWorkerThread, Consumer<In> action) {
 		then(runOnWorkerThread, (In in) -> {
@@ -106,7 +116,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 
 	/**
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>worker</strong> thread.
-	 * @param action the PureAction to be added.
+	 * @param action the action to be added.
 	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
 	 * @param <Out> The output type of this action. Lambda will automatically set this template parameter.
 	 * @return this object, thus enabling method chaining.
@@ -122,6 +132,9 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	/**
 	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
 	 * this is similar to then except that the callback does not need to return anything.
+	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
+	 * @param action the action to be added.
+	 * @return this object, thus enabling method chaining.
 	 */
 	default <In> ThisType netConsume(Consumer<In> action) {
 		netThen((In in) -> {
@@ -133,7 +146,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 
 	/**
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>main (UI)</strong> thread.
-	 * @param action the PureAction to be added.
+	 * @param action the action to be added.
 	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
 	 * @param <Out> The output type of this action. Lambda will automatically set this template parameter.
 	 * @return this object, thus enabling method chaining.
@@ -148,6 +161,9 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	/**
 	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
 	 * this is similar to then except that the callback does not need to return anything.
+	 * @param action the action to be added.
+	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
+	 * @return this object, thus enabling method chaining.
 	 */
 	default <In> ThisType uiConsume(Consumer<In> action) {
 		uiThen((In in) -> {

@@ -93,6 +93,15 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 		mCurrentOnFailure = onFailure;
 	}
 
+	/**
+	 * This constructor enables people to maintain templates of ActionChains. So that developers
+	 * do not have to repeatedly type in the same code.
+	 * @param threadPolicy The ThreadPolicy object that captures your platform's threading policies. See ThreadPolicy's
+	 *                     Documentation and constructors for more details.
+	 * @param chainTemplate a consumer that accepts an ActionChain and modifies that ActionChain
+	 * @param argument the Argument to be used as the initial value in the new ActionChain's pipe
+	 *                 . <p> This is equivalent to doing chain.then(obj -&gt; argument);
+     */
 	public AbstractActionChain(ThreadPolicy threadPolicy, NiceConsumer<ThisType> chainTemplate, Object argument) {
 		mThreadPolicy = threadPolicy;
 		this.netThen(() -> argument);
