@@ -69,16 +69,18 @@ public abstract class ReturnedChain_Template {
                 ActionChain subChain = new ActionChain(threadPolicy);
                 for (int j = 0; j < subTestLength; j++) {
                     final int thisJ = j;
-                    subChain.thenConsume(random.nextBoolean(), obj -> {
+                    subChain.then(random.nextBoolean(), obj -> {
                         ansBuilder.append(thisI);
                         ansBuilder.append(", ");
                         ansBuilder.append(thisJ);
                         ansBuilder.append(". ");
+                        return new Integer(1);
                     });
                 }
                 inputRecord[0] = input;
                 return subChain.start();
             }).uiThen(obj -> {
+                Assert.assertTrue(obj != null && obj instanceof Integer && (Integer)obj == 1);
                 ansBuilder.append("End");
                 return inputRecord[0] + 1;
             });

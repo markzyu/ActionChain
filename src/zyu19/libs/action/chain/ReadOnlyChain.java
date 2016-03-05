@@ -86,6 +86,7 @@ public class ReadOnlyChain implements ErrorHolder {
                 HashMap<ReadOnlyChain, Integer> positions = new HashMap<>();
                 List<Runnable> errHandlersToRun = new ArrayList<>();
                 boolean replaceOutputWithTarget = false;
+                final boolean shouldUnpackTargetsList[] = new boolean[]{false};
                 List<Object> targets;
 
                 if (mLastActionOutput instanceof DotAll) {
@@ -106,6 +107,7 @@ public class ReadOnlyChain implements ErrorHolder {
                     // Version 0.3: support waiting for inner ActionChains
                     // The returned ReadOnlyChain is detected here
                     replaceOutputWithTarget = true;
+                    shouldUnpackTargetsList[0] = true;
                     targets = Arrays.asList((ReadOnlyChain) mLastActionOutput);
                     filteredTargets.add((ReadOnlyChain) mLastActionOutput);
                     positions.put((ReadOnlyChain) mLastActionOutput, 0);
@@ -155,7 +157,9 @@ public class ReadOnlyChain implements ErrorHolder {
                                     targets.set(pos, input);
                                     ReadOnlyChain.this.numPendingSubChains --;
                                     if(ReadOnlyChain.this.numPendingSubChains == 0) {
-                                        ReadOnlyChain.this.mLastActionOutput = targets;
+                                        if(shouldUnpackTargetsList[0])
+                                            ReadOnlyChain.this.mLastActionOutput = targets.get(0);
+                                        else ReadOnlyChain.this.mLastActionOutput = targets;
                                         ReadOnlyChain.this.mNextAction = resumePoint;
                                         ReadOnlyChain.this.iterateNoLock();
                                     }
@@ -191,8 +195,11 @@ public class ReadOnlyChain implements ErrorHolder {
                     mNextAction = Integer.MAX_VALUE;
                     return;
                 } else {
-                    if(replaceOutputWithTarget)
-                        mLastActionOutput = targets;
+                    if(replaceOutputWithTarget) {
+                        if(shouldUnpackTargetsList[0])
+                            mLastActionOutput = targets.get(0);
+                        else mLastActionOutput = targets;
+                    }
                 }
 
             } catch (Exception err) {
