@@ -30,7 +30,7 @@ You could also cntract the code above with the [tangled version](https://github.
 
 ## Documentations
 
-Please visit [this github.io website](http://c4phone.github.io/SmartActionChain/).
+Please visit [this github.io website](http://c4phone.github.io/ActionChain/).
 
 It's recommended to begin by reading the documentations about ```ChainStyle``` and ```ErrorHolder```.
 
