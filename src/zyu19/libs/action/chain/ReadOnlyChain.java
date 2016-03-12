@@ -84,7 +84,11 @@ public class ReadOnlyChain implements ErrorHolder {
                 mLastActionOutput = action.pureAction.process(mLastActionOutput);
                 Set<ReadOnlyChain> filteredTargets = new HashSet<>();
                 HashMap<ReadOnlyChain, Integer> positions = new HashMap<>();
+
+                // If our outer handler is not null, we use errHandlersToRun otherwise we use errorsNotHandled
                 List<Runnable> errHandlersToRun = new ArrayList<>();
+                List<Exception> errorsNotHandled = new ArrayList<>();
+
                 boolean replaceOutputWithTarget = false;
                 final boolean shouldUnpackTargetsList[] = new boolean[]{false};
                 List<Object> targets;
@@ -170,7 +174,9 @@ public class ReadOnlyChain implements ErrorHolder {
                             // Call error holder to restart that chain if necessary (and if wanted)
                             if (runErrorHolderOnThat) {
                                 that.mActionSequence.get(that.mCauseLink).errorHandler = action.errorHandler;
-                                errHandlersToRun.add(() -> action.errorHandler.consume(that));
+                                if(action.errorHandler != null)
+                                    errHandlersToRun.add(() -> action.errorHandler.consume(that));
+                                else errorsNotHandled.add(that.mCause);
                             }
 
                         } else {
@@ -184,8 +190,12 @@ public class ReadOnlyChain implements ErrorHolder {
                     }
                 }
 
+                if(action.errorHandler == null && errorsNotHandled.size() > 0)
+                    throw new ExceptionList(errorsNotHandled);
+
                 // run all error handlers to determine whether to resume the subChain
                 threadPolicy.switchAndRun(() -> {
+                    // if both chains do not have error handlers, we can't even reach this line.
                     for(Runnable runnable : errHandlersToRun)
                         runnable.run();
                 });
@@ -206,6 +216,13 @@ public class ReadOnlyChain implements ErrorHolder {
                 executionFinished = true;
                 mCause = err;
                 mCauseLink = mNextAction;
+                if(action.errorHandler == null) {
+
+                    // Because some platforms do not allow throwing Exceptions to Main Thread,
+                    //      This is all we could do to help with your debugging.
+                    System.err.print("UNHANDLED Exception in ActionChain:");
+                    err.printStackTrace();
+                }
                 threadPolicy.switchAndRun(action.errorHandler, ReadOnlyChain.this);
                 return;
             }
