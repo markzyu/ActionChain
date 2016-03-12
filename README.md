@@ -3,8 +3,25 @@
 [![Circle CI](https://circleci.com/gh/C4Phone/ActionChain.svg?style=shield)](https://circleci.com/gh/C4Phone/ActionChain)
 
 
-Event handling with untangled thoughts.
+A substitute for ```AsyncTask```.
 
+
+## Sample Code :)
+
+[Android application](https://github.com/TakefiveInteractive/Ledger-Android/tree/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa), used with retrolambda
+
+[AsyncTask version](https://github.com/TakefiveInteractive/Ledger-Android/blob/3402d6c3f4272881d4d6df04648237646b8ab588/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L124)
+
+Untangled version:
+
+1. [Creating and using action chain](https://github.com/TakefiveInteractive/Ledger-Android/blob/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L128)
+2. [Creating a set of actions for .use()](https://github.com/TakefiveInteractive/Ledger-Android/blob/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa/app/src/main/java/com/takefive/ledger/task/UpdateUserInfoTask.java#L27)
+
+ - Althought the event bus version also eliminates callback hell, ```AsyncTask``` forces developers to think in a un-natural way, where:
+   - UI code and other operations cannot be mixed together. (Otherwise the code will contain lots of small pieces of ```AsyncTask```s)
+   - It's not straightforward to understand the sequence of the Tasks
+ - ActionChain Bonus:
+   - Once-for-all exception handling for all the threads, as long as they are in the same task.
 
 ## Diagram illustration
 #### We turn this tangled thought:
@@ -13,20 +30,6 @@ Event handling with untangled thoughts.
 #### into this linear, straightforward one:
 
 <img src="https://cloud.githubusercontent.com/assets/7296488/12837277/92e391fa-cb86-11e5-8fcc-62fd0620c0ed.png" width="512px" height="323px" />
-
-## Sample Code :)
-
-[Android application](https://github.com/TakefiveInteractive/Ledger-Android/tree/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa), used with retrolambda
-
-1. [Creating and using action chain](https://github.com/TakefiveInteractive/Ledger-Android/blob/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L128)
-2. [Creating a set of actions for .use()](https://github.com/TakefiveInteractive/Ledger-Android/blob/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa/app/src/main/java/com/takefive/ledger/task/UpdateUserInfoTask.java#L27)
-
-You could also cntract the code above with the [tangled version](https://github.com/TakefiveInteractive/Ledger-Android/blob/3402d6c3f4272881d4d6df04648237646b8ab588/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L124) using event bus.
-
- - Althought the event bus version also eliminates callback hell, the thought behind the code is scattered, tangled and a little confusing:
-   - It's not straightforward to understand the sequence of the Tasks
- - ActionChain Bonus:
-   - We always get to choose the thread to run a task, without having to send more events, or create more named functions/callbacks.
 
 ## Documentations
 
