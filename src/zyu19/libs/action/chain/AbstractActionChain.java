@@ -78,6 +78,56 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 		return (ThisType)this;
 	}
 
+    @Override
+    public <In> ReadOnlyChain start() {
+		return start(null);
+	}
+
+    @Override
+    public <Out> ThisType then(boolean runOnWorkerThread, Producer<Out> action) {
+		then(runOnWorkerThread, (PureAction)in -> action.produce());
+		return (ThisType)this;
+	}
+
+    @Override
+    public <In> ThisType thenConsume(boolean runOnWorkerThread, Consumer<In> action) {
+		then(runOnWorkerThread, (In in) -> {
+			action.consume(in);
+			return null;
+		});
+		return (ThisType)this;
+	}
+
+    @Override
+    public <Out> ThisType netThen(Producer<Out> action) {
+		netThen((PureAction)in -> action.produce());
+		return (ThisType)this;
+	}
+
+    @Override
+    public <In> ThisType netConsume(Consumer<In> action) {
+		netThen((In in) -> {
+			action.consume(in);
+			return null;
+		});
+		return (ThisType)this;
+	}
+
+    @Override
+    public <Out> ThisType uiThen(Producer<Out> action) {
+		uiThen((PureAction)in -> action.produce());
+		return (ThisType)this;
+	}
+
+    @Override
+    public <In> ThisType uiConsume(Consumer<In> action) {
+		uiThen((In in) -> {
+			action.consume(in);
+			return null;
+		});
+		return (ThisType)this;
+	}
+
 	//------------- Constructors ----------------
 
 	private NiceConsumer<ErrorHolder> mCurrentOnFailure;

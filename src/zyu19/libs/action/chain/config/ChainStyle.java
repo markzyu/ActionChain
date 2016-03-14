@@ -44,9 +44,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * this object is useless but if you return this object inside another PureAction,
 	 * then that PureAction will wait for this chain of actions to finish before it can finish.
 	 */
-	default <In> ReadOnlyChain start() {
-		return start(null);
-	}
+	<In> ReadOnlyChain start();
 
 	/**
 	 * Clear all actions. You can call this function after start() so as to arrange a
@@ -90,10 +88,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 */
 	<In, Out> ThisType then(boolean runOnWorkerThread, PureAction<In, Out> action);
 
-	default <Out> ThisType then(boolean runOnWorkerThread, Producer<Out> action) {
-		then(runOnWorkerThread, (PureAction)in -> action.produce());
-		return (ThisType)this;
-	}
+	<Out> ThisType then(boolean runOnWorkerThread, Producer<Out> action);
 
 
 	/**
@@ -105,13 +100,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * @param action the action to be added.
 	 * @return this object, thus enabling method chaining.
 	 */
-	default <In> ThisType thenConsume(boolean runOnWorkerThread, Consumer<In> action) {
-		then(runOnWorkerThread, (In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
+	<In> ThisType thenConsume(boolean runOnWorkerThread, Consumer<In> action);
 
 
 	/**
@@ -123,10 +112,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 */
 	<In, Out> ThisType netThen(PureAction<In, Out> action);
 
-	default <Out> ThisType netThen(Producer<Out> action) {
-		netThen((PureAction)in -> action.produce());
-		return (ThisType)this;
-	}
+	<Out> ThisType netThen(Producer<Out> action);
 
 
 	/**
@@ -136,13 +122,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * @param action the action to be added.
 	 * @return this object, thus enabling method chaining.
 	 */
-	default <In> ThisType netConsume(Consumer<In> action) {
-		netThen((In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
+	<In> ThisType netConsume(Consumer<In> action);
 
 	/**
 	 * Add a 'PureAction' object, or an "action", in this ChainStyle on the <strong>main (UI)</strong> thread.
@@ -153,10 +133,7 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 */
 	<In, Out> ThisType uiThen(PureAction<In, Out> action);
 
-	default <Out> ThisType uiThen(Producer<Out> action) {
-		uiThen((PureAction)in -> action.produce());
-		return (ThisType)this;
-	}
+	<Out> ThisType uiThen(Producer<Out> action);
 
 	/**
 	 * In order to prevent compiler from being confused when using lambda, we renamed the method.
@@ -165,11 +142,5 @@ public interface ChainStyle <ThisType extends ChainStyle<ThisType>> {
 	 * @param <In> The input type of this action. Lambda will automatically set this template parameter.
 	 * @return this object, thus enabling method chaining.
 	 */
-	default <In> ThisType uiConsume(Consumer<In> action) {
-		uiThen((In in) -> {
-			action.consume(in);
-			return null;
-		});
-		return (ThisType)this;
-	}
+	<In> ThisType uiConsume(Consumer<In> action);
 }
