@@ -28,7 +28,13 @@ public class TActionChain<T> {
 
 	//------------- public functions (FakePromise Interface) ----------------
 
-	public final ReadOnlyChain start(NiceConsumer<T> onSuccess) {
+	/**
+	 * starts running this chain.
+	 * @param onSuccess a callback to consume output in pipeline upon success
+	 * @return a Object, if you return this object in another chain, the action after that will
+	 * receive this chain's final output (Thus this type cannot be easily inferred using Java Generics).
+     */
+	public final Object start(NiceConsumer<T> onSuccess) {
 		ReadOnlyChain chain = new ReadOnlyChain(mActionSequence, onSuccess, mThreadPolicy);
 		chain.start();
 		return chain;
@@ -71,7 +77,13 @@ public class TActionChain<T> {
 		return (TActionChain<Out>)this;
 	}
 
-    public ReadOnlyChain start() {
+
+	/**
+	 * starts running this chain.
+	 * @return a Object, if you return this object in another chain, the action after that will
+	 * receive this chain's final output (Thus this type cannot be easily inferred using Java Generics).
+	 */
+    public Object start() {
 		return start(null);
 	}
 
@@ -138,7 +150,7 @@ public class TActionChain<T> {
 
 	// ------------ STATIC HELPERS ----------------
 
-	public static DotAll all(Object... objects) {
+	public static Object all(Object... objects) {
 		return all(Arrays.asList(objects));
 	}
 
@@ -156,7 +168,7 @@ public class TActionChain<T> {
 	 *                directly put into the list returned result
      * @return the object you should return inside the .then()
      */
-	public static DotAll all(List<Object> objects) {
+	public static Object all(List<Object> objects) {
 		return new DotAll(objects);
 	}
 }

@@ -166,7 +166,7 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 
 	// ------------ STATIC HELPERS ----------------
 
-	public static DotAll all(Object... objects) {
+	public static Object all(Object... objects) {
 		return all(Arrays.asList(objects));
 	}
 
@@ -184,7 +184,7 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 	 *                directly put into the list returned result
      * @return the object you should return inside the .then()
      */
-	public static DotAll all(List<Object> objects) {
+	public static Object all(List<Object> objects) {
 		return new DotAll(objects);
 	}
 }

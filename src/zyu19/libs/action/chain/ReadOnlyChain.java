@@ -93,7 +93,7 @@ public class ReadOnlyChain implements ErrorHolder {
                 final boolean shouldUnpackTargetsList[] = new boolean[]{false};
                 List<Object> targets;
 
-                if (mLastActionOutput instanceof DotAll) {
+                if (DotAll.class.isAssignableFrom(mLastActionOutput.getClass())) {
                     // Version 0.4: support waiting for ActionChain.all() (this is the point of using .all()...)
                     targets = ((DotAll) mLastActionOutput).objects;
                     for(int i = 0; i < targets.size(); i++) {
@@ -107,7 +107,7 @@ public class ReadOnlyChain implements ErrorHolder {
                     filteredTargets.remove(this);
                     replaceOutputWithTarget = true;
                 }
-                else if (mLastActionOutput instanceof ReadOnlyChain && mLastActionOutput != this) {
+                else if (ReadOnlyChain.class.isAssignableFrom(mLastActionOutput.getClass()) && mLastActionOutput != this) {
                     // Version 0.3: support waiting for inner ActionChains
                     // The returned ReadOnlyChain is detected here
                     replaceOutputWithTarget = true;
