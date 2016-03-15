@@ -54,8 +54,13 @@ public abstract class AbstractActionChain<ThisType extends AbstractActionChain<T
 		mCurrentOnFailure = error -> {
 			if(claz.isAssignableFrom(error.getCause().getClass()))
 				onFailure.consume((ErrorHolder<T>)error);
-			else if(oldHandler != null)
-				oldHandler.consume(error);
+			else {
+				if(oldHandler != null)
+					oldHandler.consume(error);
+				else {
+					ReadOnlyChain.printUncaughtEx(error.getCause());
+				}
+			}
 		};
 		return (ThisType)this;
 	}
