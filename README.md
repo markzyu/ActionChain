@@ -4,10 +4,115 @@
 
 
 A substitute for ```AsyncTask```.
+For type-safe ActionChains, please refer to ```TActionChain``` class in "[type-safe](https://github.com/C4Phone/ActionChain/tree/type-safe)" branch.
 
 
 ## Sample Code :)
 
+#### Example 1:
+
+We managed to restrict realm to run only on worker threads using ActionChain, in a simple yet safe way:
+
+##### Encapsulation of ```Realm```
+```Java
+/**
+ * Created on 3/14/16, using 
+ */
+public class RealmAccess implements PureAction<PureAction<Realm, ?>, ReadOnlyChain> {
+
+    @Inject
+    ActionChainFactory chainFactory;
+
+    @Inject
+    Context context;
+
+    @Override
+    public ReadOnlyChain process(PureAction<Realm, ?> editor) throws Exception {
+        return chainFactory.get(fail -> fail.getCause().printStackTrace()
+        ).netThen(() -> {
+            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(context)
+                    .name(context.getString(R.string.realm_filename))
+                    .deleteRealmIfMigrationNeeded()
+                    .build());
+            Object result = editor.process(realm);
+            realm.close();
+            return result;
+        }).start();
+    }
+}
+```
+
+##### Usage of ```ReamAccess```
+
+Example 1.1:
+
+```Java
+// Retrieve current user
+chainFactory.get(fail -> fail.getCause().printStackTrace()
+).netThen(() -> realmAccess.process(realm -> {
+    return realm.where(Person.class)
+            .equalTo("personId", userStore.getMostRecentUserId())
+            .findFirst().getName();
+})).uiConsume((String name) -> {
+    mUserName.setText(name);
+}).start();
+```
+
+Example 1.2:
+
+```Java
+chain.netThen((String userName) -> {
+    Response<ResponseBody> response = service.getCurrentPerson().execute();
+    Person person = new Person();
+    if (response.code() != 200)
+        throw new IOException(response.message());
+    ResponseBody responseBody = response.body();
+    JSONObject jsonObject = new JSONObject(responseBody.string());
+
+    String ourUserID = jsonObject.getString("_id");
+
+    // Set user ID in preferences
+    userStore.setUserId(ourUserID);
+
+    Photo photo = new Photo();
+    photo.setPhotoUrl(jsonObject.getString("avatarUrl"));
+    photo.setType(Photo.TYPE_AVATAR);
+    person.setName(userName);
+    person.setAvatar(photo);
+    person.setFacebookId(jsonObject.getString("facebookId"));
+    person.setCreatedAt(DateTimeConverter.toDate(jsonObject.getString("createdAt")));
+    person.setPersonId(ourUserID);
+
+    Log.d("UpUserInfo", "A" + person);
+
+    return person;
+}).netThen((Person newPerson) -> realmAccess.process(realm -> {
+    try {
+        Log.d("UpUserInfo", newPerson == null ? "null" : newPerson.toString());
+        // Set user details in database
+        realm.beginTransaction();
+        Person result = realm.where(Person.class)
+                .equalTo("personId", newPerson.getPersonId())
+                .findFirst();
+        if (result != null)
+            result.removeFromRealm();
+        realm.copyToRealm(newPerson);
+        realm.commitTransaction();
+        // MAYBE NOT NEEDED: bus.post(new UserInfoUpdatedEvent(result));
+        return newPerson;
+    } catch (Exception err) {
+        // Maybe errorHolder.retry() ?
+
+        if (realm.isInTransaction())
+            realm.cancelTransaction();
+        err.printStackTrace();
+        throw err;
+    }
+}));
+```
+
+
+#### Example 2
 [Android application](https://github.com/TakefiveInteractive/Ledger-Android/tree/5b00fe9ac42685581a83fbb49fe1f1ef89cc35fa), used with retrolambda
 
 [AsyncTask version](https://github.com/TakefiveInteractive/Ledger-Android/blob/3402d6c3f4272881d4d6df04648237646b8ab588/app/src/main/java/com/takefive/ledger/WelcomeActivity.java#L124)
@@ -22,6 +127,8 @@ Untangled version:
    - It's not straightforward to understand the sequence of the Tasks
  - ActionChain Bonus:
    - Once-for-all exception handling for all the threads, as long as they are in the same task.
+
+
 
 ## Diagram illustration
 #### We turn this tangled thought:
