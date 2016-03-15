@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by zyu on 3/15/16.
+ * @version 0.4-beta.5
  */
 public class TActionChainTest {
     // These tests make sure that exceptions from NiceConsumers, and from ActionChain systems will still crash the system,
@@ -60,96 +61,6 @@ public class TActionChainTest {
             }
     }
 
-    @Test(timeout = 2000, expected = NullPointerException.class)
-    public void ExceptionInErrorHandler() {
-        final Integer nullInt = null;
-
-        chain.clear(errorHolder -> System.out.println(nullInt + 1)
-        ).thenConsume(random.nextBoolean(), obj -> System.out.println(nullInt + 1)
-        ).start(obj -> Assert.fail("should crash"));
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000, expected = NullPointerException.class)
-    public void ExceptionInSuccessHandler() {
-        final Integer nullInt = null;
-
-        chain.clear(errorHolder -> Assert.fail("should not have caught any exception inside pureActions")
-        ).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.assertTrue(obj == 123);
-            System.out.println(nullInt + 1);
-        });
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000, expected = NullPointerException.class)
-    public void ExceptionInSubChainSuccessHandler() {
-        final Integer nullInt = null;
-
-        chain.clear(errorHolder -> Assert.fail("should not have caught any exception inside pureActions")
-        ).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy, error -> {
-                Assert.fail("should not have caught any exception inside pureActions");
-            }).then(random.nextBoolean(), () -> 456
-            ).start(innerans -> System.out.println(nullInt + 1));
-        }).then(random.nextBoolean(), obj -> 123
-        ).start((Integer obj) -> Assert.assertTrue(obj == 123));
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000, expected = NullPointerException.class)
-    public void ExceptionInSubChainFailureHandler() {
-        final Integer nullInt = null;
-
-        chain.clear(errorHolder -> {
-            Assert.fail("should not have caught any exception inside pureActions");
-        }).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy, error -> {
-                System.out.println(nullInt + 1);
-            }).thenConsume(random.nextBoolean(), xxx -> System.out.println(nullInt + 1)
-            ).start(innerans -> Assert.fail("should not have succeeded"));
-        }).then(random.nextBoolean(), obj -> 123
-        ).start((Integer obj) -> Assert.assertTrue(obj == 123));
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000, expected = NullPointerException.class)
-    public void ExceptionInFailureHandlerForSubChainErrors() {
-        final Integer nullInt = null;
-
-        chain.clear(errorHolder -> {
-            System.out.println(nullInt + 1);
-        }).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
-                System.out.println(nullInt + 1);
-            }).start(innerans -> Assert.fail("should not have succeeded"));
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.fail("should not have succeeded");
-        });
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000)
-    public void TestTypeConversion() {
-        // This test should prove that Type conversion errors will be caught by ".fail()" error handlers
-        chain.clear(errorHolder -> finished.set(true)
-        ).then(random.nextBoolean(), obj -> true
-        ).then(random.nextBoolean(), (Integer obj) -> {
-            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
-                System.out.println(obj + 1);
-            }).start(innerans -> Assert.fail("should not have succeeded"));
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.fail("should not have succeeded");
-        });
-
-        StartTests();
-    }
-
     @Test(timeout = 2000)
     public void TestSimpleTActionChain() {
         // This is compiler time check
@@ -159,56 +70,17 @@ public class TActionChainTest {
         ).netThen(i -> Integer.toString(i + 3)
         ).uiConsume(System.out::println
         ).netThen(() -> Arrays.<String>asList("a", "b", "c")
-        ).netThen(strs -> strs.stream().reduce("", (a, b) -> {
-            return a + b;
-        })).uiConsume(System.out::println
-        ).start(obj -> {
+        ).netThen(strs -> {
+            return tChainFactory.get().netThen(() -> strs.stream().reduce("", (a, b) -> {
+                return a + b;
+            })).start();
+        }).uiConsume(obj -> {
+            System.out.println((String) obj);
+        }).start(obj -> {
             finished.set(true);
         });
 
         StartTests();
     }
 
-
-    // TODO: (v0.4) add tests about error handler targeted at specific exception types
-
-    @Test(timeout = 2000)
-    public void TestErrorHandlerWithFilter() {
-        Integer nullInt = null;
-
-        chain.clear(errorHolder -> {
-            Assert.assertTrue(errorHolder.getCause() instanceof NullPointerException);
-            finished.set(true);
-        }).fail(IOException.class, errorHolder -> {
-            Assert.fail("should not have caught IOException.");
-        }).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
-                System.out.println(nullInt + 1);
-            }).start(innerans -> Assert.fail("should not have succeeded"));
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.fail("should not have succeeded");
-        });
-
-        StartTests();
-    }
-
-    @Test(timeout = 2000)
-    public void TestErrorHandlerWithFilter2() {
-        Integer nullInt = null;
-
-        chain.clear(errorHolder -> {
-            Assert.fail("should not have caught other exceptions.");
-        }).fail(NullPointerException.class, errorHolder -> {
-            // this is enough for an "assert" for success
-            finished.set(true);
-        }).then(random.nextBoolean(), obj -> {
-            return new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
-                System.out.println(nullInt + 1);
-            }).start(innerans -> Assert.fail("should not have succeeded"));
-        }).then(random.nextBoolean(), obj -> 123).start((Integer obj) -> {
-            Assert.fail("should not have succeeded");
-        });
-
-        StartTests();
-    }
 }
