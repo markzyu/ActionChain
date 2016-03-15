@@ -4,6 +4,7 @@
 
 
 A substitute for ```AsyncTask```.
+For type-safe ActionChains, please refer to ```TActionChain``` class in "[type-safe](https://github.com/C4Phone/ActionChain/tree/type-safe)" branch.
 
 
 ## Sample Code :)
@@ -46,68 +47,68 @@ public class RealmAccess implements PureAction<PureAction<Realm, ?>, ReadOnlyCha
 Example 1.1:
 
 ```Java
-        // Retrieve current user
-        chainFactory.get(fail -> fail.getCause().printStackTrace()
-        ).netThen(() -> realmAccess.process(realm -> {
-            return realm.where(Person.class)
-                    .equalTo("personId", userStore.getMostRecentUserId())
-                    .findFirst().getName();
-        })).uiConsume((String name) -> {
-            mUserName.setText(name);
-        }).start();
+// Retrieve current user
+chainFactory.get(fail -> fail.getCause().printStackTrace()
+).netThen(() -> realmAccess.process(realm -> {
+    return realm.where(Person.class)
+            .equalTo("personId", userStore.getMostRecentUserId())
+            .findFirst().getName();
+})).uiConsume((String name) -> {
+    mUserName.setText(name);
+}).start();
 ```
 
 Example 1.2:
 
 ```Java
-        chain.netThen((String userName) -> {
-            Response<ResponseBody> response = service.getCurrentPerson().execute();
-            Person person = new Person();
-            if (response.code() != 200)
-                throw new IOException(response.message());
-            ResponseBody responseBody = response.body();
-            JSONObject jsonObject = new JSONObject(responseBody.string());
+chain.netThen((String userName) -> {
+    Response<ResponseBody> response = service.getCurrentPerson().execute();
+    Person person = new Person();
+    if (response.code() != 200)
+        throw new IOException(response.message());
+    ResponseBody responseBody = response.body();
+    JSONObject jsonObject = new JSONObject(responseBody.string());
 
-            String ourUserID = jsonObject.getString("_id");
+    String ourUserID = jsonObject.getString("_id");
 
-            // Set user ID in preferences
-            userStore.setUserId(ourUserID);
+    // Set user ID in preferences
+    userStore.setUserId(ourUserID);
 
-            Photo photo = new Photo();
-            photo.setPhotoUrl(jsonObject.getString("avatarUrl"));
-            photo.setType(Photo.TYPE_AVATAR);
-            person.setName(userName);
-            person.setAvatar(photo);
-            person.setFacebookId(jsonObject.getString("facebookId"));
-            person.setCreatedAt(DateTimeConverter.toDate(jsonObject.getString("createdAt")));
-            person.setPersonId(ourUserID);
+    Photo photo = new Photo();
+    photo.setPhotoUrl(jsonObject.getString("avatarUrl"));
+    photo.setType(Photo.TYPE_AVATAR);
+    person.setName(userName);
+    person.setAvatar(photo);
+    person.setFacebookId(jsonObject.getString("facebookId"));
+    person.setCreatedAt(DateTimeConverter.toDate(jsonObject.getString("createdAt")));
+    person.setPersonId(ourUserID);
 
-            Log.d("UpUserInfo", "A" + person);
+    Log.d("UpUserInfo", "A" + person);
 
-            return person;
-        }).netThen((Person newPerson) -> realmAccess.process(realm -> {
-            try {
-                Log.d("UpUserInfo", newPerson == null ? "null" : newPerson.toString());
-                // Set user details in database
-                realm.beginTransaction();
-                Person result = realm.where(Person.class)
-                        .equalTo("personId", newPerson.getPersonId())
-                        .findFirst();
-                if (result != null)
-                    result.removeFromRealm();
-                realm.copyToRealm(newPerson);
-                realm.commitTransaction();
-                // MAYBE NOT NEEDED: bus.post(new UserInfoUpdatedEvent(result));
-                return newPerson;
-            } catch (Exception err) {
-                // Maybe errorHolder.retry() ?
+    return person;
+}).netThen((Person newPerson) -> realmAccess.process(realm -> {
+    try {
+        Log.d("UpUserInfo", newPerson == null ? "null" : newPerson.toString());
+        // Set user details in database
+        realm.beginTransaction();
+        Person result = realm.where(Person.class)
+                .equalTo("personId", newPerson.getPersonId())
+                .findFirst();
+        if (result != null)
+            result.removeFromRealm();
+        realm.copyToRealm(newPerson);
+        realm.commitTransaction();
+        // MAYBE NOT NEEDED: bus.post(new UserInfoUpdatedEvent(result));
+        return newPerson;
+    } catch (Exception err) {
+        // Maybe errorHolder.retry() ?
 
-                if (realm.isInTransaction())
-                    realm.cancelTransaction();
-                err.printStackTrace();
-                throw err;
-            }
-        }));
+        if (realm.isInTransaction())
+            realm.cancelTransaction();
+        err.printStackTrace();
+        throw err;
+    }
+}));
 ```
 
 
