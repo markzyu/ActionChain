@@ -1,6 +1,7 @@
 package zyu19.libs.action.chain.tests;
 
 import org.junit.Assert;
+import org.junit.Test;
 import zyu19.libs.action.chain.ActionChain;
 import zyu19.libs.action.chain.ExceptionList;
 import zyu19.libs.action.chain.config.ThreadPolicy;
@@ -17,13 +18,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This is just a simple test to illustrate ExceptionList
  * Created by zyu on 3/11/16.
  */
-public class ExceptionListOutput {
+public class ExceptionOutputTest {
 
     static Random random = new Random();
     static BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
     static ThreadPolicy threadPolicy = new ThreadPolicy(runnable -> queue.add(runnable), Executors.newCachedThreadPool());
     static ActionChain chain = new ActionChain(threadPolicy);
-    public static void main(String[] s) {
+
+    @Test(timeout =  2000)
+    public void Main() {
 
         PrintStream stderr = System.err;
 
@@ -36,10 +39,7 @@ public class ExceptionListOutput {
         int[] numEx = new int[]{0};
 
         chain.clear(null
-        ).fail(IOException.class, errorHolder -> {
-            numEx[0]++;
-            errorHolder.retry();
-        }).then(random.nextBoolean(), obj -> {
+        ).then(random.nextBoolean(), obj -> {
             Object ret = ActionChain.all(new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
                 System.out.println(nullInt + 1);
             }).start(), new ActionChain(threadPolicy).thenConsume(random.nextBoolean(), xxx -> {
@@ -55,14 +55,18 @@ public class ExceptionListOutput {
             Assert.fail("Should not reach this line.");
         });
 
+        StringBuilder builder = new StringBuilder();
+
         // Simulate the Android Looper class
         while (!queue.isEmpty())
             try {
-                System.out.print(errContent.toString());
-                if(errContent.toString().contains(ExceptionList.messageTag)) {
+                System.err.flush();
+                builder.append(errContent.toString());
+                if(builder.toString().contains(ExceptionList.messageTag)) {
+                    System.out.println("Finished");
                     break;
                 }
-                queue.take().run();
+                else queue.take().run();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -190,7 +190,7 @@ public class ReadOnlyChain implements ErrorHolder {
                     }
                 }
 
-                if(action.errorHandler == null && errorsNotHandled.size() > 0)
+                if(errorsNotHandled.size() > 0)
                     throw new ExceptionList(errorsNotHandled);
 
                 // run all error handlers to determine whether to resume the subChain
@@ -217,11 +217,7 @@ public class ReadOnlyChain implements ErrorHolder {
                 mCause = err;
                 mCauseLink = mNextAction;
                 if(action.errorHandler == null) {
-
-                    // Because some platforms do not allow throwing Exceptions to Main Thread,
-                    //      This is all we could do to help with your debugging.
-                    System.err.print("UNHANDLED Exception in ActionChain:");
-                    err.printStackTrace();
+                    printUncaughtEx(err);
                 }
                 threadPolicy.switchAndRun(action.errorHandler, ReadOnlyChain.this);
                 return;
@@ -230,6 +226,13 @@ public class ReadOnlyChain implements ErrorHolder {
             iterate();
         }
     };
+
+    public static void printUncaughtEx(Exception exception) {
+        // Because some platforms do not allow throwing Exceptions to Main Thread,
+        //      This is all we could do to help with your debugging.
+        System.err.print("UNHANDLED Exception in ActionChain:");
+        exception.printStackTrace();
+    }
 
     private final void iterate() {
         synchronized (ReadOnlyChain.this) {

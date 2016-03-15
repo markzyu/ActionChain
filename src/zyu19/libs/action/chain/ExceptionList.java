@@ -60,7 +60,8 @@ public class ExceptionList extends Exception {
             int i = 0;
             sb.append(" -- List of Causes: ").append(mCause.size()).append(" items.\n");
             for(Throwable throwable : mCause) {
-                sb.append(" ----- Cause No.").append(i).append("\n").append(throwable.getLocalizedMessage());
+                sb.append(" ----- Cause No.").append(i).append("\n").append(
+                        throwable == null ? "(null)" : throwable.toString()).append("\n");
                 i++;
             }
         }
