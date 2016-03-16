@@ -11,7 +11,7 @@ For type-safe ActionChains, please refer to ```TActionChain``` class in "[type-s
 
 #### Example 1:
 
-We managed to restrict realm to run only on worker threads using ActionChain, in a simple yet safe way:
+```Realm``` database caused some trouble for us because it's required to be run on the same thread and defaults to run on *UI thread*, which might affect user experience. But ```ActionChain``` enables you to restrict ```Realm``` to run only on worker threads using ```ActionChain```, in a simple yet safe way:
 
 ##### Encapsulation of ```Realm```
 ```Java
