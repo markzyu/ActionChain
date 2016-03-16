@@ -4,19 +4,23 @@
 
 
 A substitute for ```AsyncTask```.
-For type-safe ActionChains, please refer to ```TActionChain``` class in "[type-safe](https://github.com/C4Phone/ActionChain/tree/type-safe)" branch.
+For type-safe ActionChains, please refer to [TActionChain](https://github.com/C4Phone/ActionChain/blob/master/src/zyu19/libs/action/chain/TActionChain.java) class, and [TActionChainTest](https://github.com/C4Phone/ActionChain/blob/master/tests/zyu19/libs/action/chain/tests/TActionChainTest.java)
 
 
 ## Sample Code :)
 
 #### Example 1:
 
-```Realm``` database caused some trouble for us because it's required to be run on the same thread and defaults to run on *UI thread*, which might affect user experience. But ```ActionChain``` enables you to restrict ```Realm``` to run only on worker threads using ```ActionChain```, in a simple yet safe way:
+```Realm``` database caused some trouble for us because it's required to be run on the same thread and defaults to run on *UI thread*, which might affect user experience. But ```ActionChain``` enables you to restrict ```Realm``` to run only on worker threads, in a simple yet safe way:
 
 ##### Encapsulation of ```Realm```
 ```Java
 /**
- * Created on 3/14/16, using 
+ * Created on 3/14/16 
+ *
+ * Note: PureAction<I,O> is interface for a function that takes an argument of type I and returns an object of type O
+ *       ReadOnlyChain is the object representing a launched ActionChain.
+ *       (ActionChain is not launched until calling ".start()")
  */
 public class RealmAccess implements PureAction<PureAction<Realm, ?>, ReadOnlyChain> {
 
