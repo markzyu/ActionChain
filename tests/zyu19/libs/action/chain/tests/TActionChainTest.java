@@ -65,8 +65,8 @@ public class TActionChainTest {
     public void TestSimpleTActionChain() {
         // This is compiler time check
         tChainFactory.get(fail -> fail.getCause().printStackTrace()
-                // ).netThen((Integer obj) -> 123); You cannot do this because obj is of type Void
         ).netThen(obj -> 123
+        // You cannot do ).netThen((Boolean b) -> !b); because obj is of type Integer (but in not-type-safe version you can)
         ).netThen(i -> Integer.toString(i + 3)
         ).uiConsume(System.out::println
         ).netThen(() -> Arrays.<String>asList("a", "b", "c")
@@ -75,6 +75,8 @@ public class TActionChainTest {
                 return a + b;
             })).start();
         }).uiConsume(obj -> {
+            // If a subchain is returned in the previous action (like here),
+            //    the input will be of type "Object" because Java Generics is not powerful enough for our protocol.
             System.out.println((String) obj);
         }).start(obj -> {
             finished.set(true);
