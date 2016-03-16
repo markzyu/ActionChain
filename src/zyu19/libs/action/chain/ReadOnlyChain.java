@@ -33,6 +33,17 @@ public class ReadOnlyChain implements ErrorHolder {
         iterate();
     }
 
+    @Override
+    public void jumpBy(int offset) {
+        mNextAction += offset;
+        iterate();
+    }
+
+    @Override
+    public int getPosition() {
+        return mNextAction;
+    }
+
     //---------------------- Executor functions -------------------------
     private int mNextAction = 0;
     private Object mLastActionOutput = null;
@@ -66,7 +77,7 @@ public class ReadOnlyChain implements ErrorHolder {
     private final boolean isIterationOver() {
         if (isOnSuccessCalled)
             return true;
-        else if (mNextAction >= mActionSequence.size()) {
+        else if (mNextAction < 0 || mNextAction >= mActionSequence.size()) {
             mThreadPolicy.switchAndRun(mOnSuccess, mLastActionOutput);
             isOnSuccessCalled = true;
             return true;

@@ -63,4 +63,17 @@ public interface ErrorHolder <E extends Exception> {
 	 * @see ErrorHolder
 	 */
 	void retry();
+
+	/**
+	 * Skip the piece of action causing trouble, by jumping to a next / previous action.
+	 * @param offset by how much to jump... Note: if it jumps too far, it will simply stop executing.
+	 */
+	void jumpBy(int offset);
+
+
+	/**
+	 * Notice that this also counts the actions added by chainTemplates.
+	 * @return an integer value that starts at 0
+     */
+	int getPosition();
 }

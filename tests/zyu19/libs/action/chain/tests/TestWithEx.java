@@ -1,5 +1,7 @@
 package zyu19.libs.action.chain.tests;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -85,7 +87,126 @@ public class TestWithEx {
 				e.printStackTrace();
 			}
 	}
-	
+
+	@Test
+	public void TestJump() {
+		final StringBuilder ansBuilder = new StringBuilder();
+		Random random = new Random();
+
+		class TestOutputAction implements PureAction<Object, Object> {
+			public int name;
+
+			public TestOutputAction(int name) {
+				this.name = name;
+			}
+
+			public Object process(Object input) throws Exception {
+				ansBuilder.append(String.valueOf(name));
+				return null;
+			}
+		}
+
+		// either JumpDecision or onSuccess should break the loop (see the while loop afterwards)
+		final AtomicBoolean finished = new AtomicBoolean(false);
+
+		class JumpDecision implements NiceConsumer<ErrorHolder> {
+
+			public Integer jumpBy;
+
+			public JumpDecision(Integer jumpTo) {this.jumpBy = jumpTo;}
+
+			@Override
+			public void consume(ErrorHolder arg) {
+				Assert.assertNotNull(arg);
+				if(jumpBy != null)
+					arg.jumpBy(jumpBy);
+				else finished.set(true);
+			}
+
+		}
+
+		class ThrowerAction implements PureAction<Object, Object> {
+			boolean hasThrownOnce = false;
+			public Object process(Object input) throws Exception {
+				if(!hasThrownOnce) {
+					hasThrownOnce = true;
+					throw new Exception();
+				}
+				return null;
+			}
+		};
+
+		chain.clear(new NiceConsumer<ErrorHolder>() {
+			public void consume(ErrorHolder arg) {
+				Assert.fail(arg.getCause().toString());
+			}
+		});
+
+		//----------------------------------
+
+		String correctAns = "";
+		int temp;
+		boolean endWithException = false;
+
+		ArrayList<String> prevOutputs = new ArrayList<>();
+
+		for (int i = 0; i < 100; i++) {
+			if(random.nextInt(10) >= 8) {
+				if(random.nextInt(10) >= 8) {
+					chain.fail(new JumpDecision(null));
+					chain.then(random.nextBoolean(), new ThrowerAction());
+					endWithException = true;
+					break;
+				}
+				else {
+					int target = random.nextInt(i);
+					chain.fail(new JumpDecision(target - i));
+					chain.then(random.nextBoolean(), new ThrowerAction());
+					prevOutputs.add("");
+					// ensure i<=target
+
+					int ii = i;
+					if(target < ii) {
+						target = ii - target;
+						ii = ii - target;
+						target = ii + target;
+					}
+                    for(int j = ii; j <= target; j++) {
+                        correctAns += prevOutputs.get(j);
+                    }
+				}
+			} else {
+				temp = random.nextInt();
+				correctAns += String.valueOf(temp);
+				prevOutputs.add(String.valueOf(temp));
+				chain.then(random.nextBoolean(), new TestOutputAction(temp));
+			}
+		}
+
+		if(endWithException)
+			chain.start(null);
+		else {
+			final int lastTest = random.nextInt();
+			correctAns += String.valueOf(lastTest);
+
+			chain.start(arg -> {
+				ansBuilder.append(String.valueOf(lastTest));
+				finished.set(true);
+			});
+		}
+
+		// Simulate the Android Looper class
+		while (!finished.get() || !queue.isEmpty())
+			try {
+				queue.take().run();
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
+	}
+
 	@Test
 	public void TestRetry() {
 		final StringBuilder ansBuilder = new StringBuilder();
@@ -188,5 +309,4 @@ public class TestWithEx {
 		
 		Assert.assertTrue(ansBuilder.toString() + " != " + correctAns, ansBuilder.toString().equals(correctAns));
 	}
-	// TODO: (v0.4) add tests about ChainStyle.fail(claz, handler)
 }
