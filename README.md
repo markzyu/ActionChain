@@ -3,7 +3,7 @@
 [![Circle CI](https://circleci.com/gh/C4Phone/ActionChain.svg?style=shield)](https://circleci.com/gh/C4Phone/ActionChain)
 
 
-A substitute for ```AsyncTask```.
+A substitute for ```AsyncTask```. Also a variant of ```JDeferred``` where you could easily specify the thread to run actions on.
 For type-safe ActionChains, please refer to [TActionChain](https://github.com/C4Phone/ActionChain/blob/master/src/zyu19/libs/action/chain/TActionChain.java) class, and [TActionChainTest](https://github.com/C4Phone/ActionChain/blob/master/tests/zyu19/libs/action/chain/tests/TActionChainTest.java)
 
 
