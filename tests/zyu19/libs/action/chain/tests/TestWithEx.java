@@ -158,7 +158,7 @@ public class TestWithEx {
 					endWithException = true;
 					break;
 				}
-				else {
+				else if(i > 0) {
 					int target = random.nextInt(i);
 					chain.fail(new JumpDecision(target - i));
 					chain.then(random.nextBoolean(), new ThrowerAction());
