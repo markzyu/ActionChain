@@ -9,6 +9,135 @@ For type-safe ActionChains, please refer to [TActionChain](https://github.com/C4
 
 ## Sample Code :)
 
+#### Example 0:
+The original AsyncTask version of code was created by [Graham Smith](http://stackoverflow.com/users/649979/graham-smith) on [Stack Overflow](http://stackoverflow.com/questions/9671546/asynctask-android-example).
+
+```Java
+public class AsyncTaskActivity extends Activity implements OnClickListener {
+
+    Button btn;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        btn = (Button) findViewById(R.id.button1);
+        btn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                new LongOperation().execute("");
+            }
+        });
+    }
+
+    private class LongOperation extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            for (int i = 0; i < 5; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.interrupted();
+                }
+            }
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            TextView txt = (TextView) findViewById(R.id.output);
+            txt.setText("Executed"); // txt.setText(result);
+            // might want to change "executed" for the returned string passed
+            // into onPostExecute() but that is upto you
+        }
+
+        @Override
+        protected void onPreExecute() {}
+
+        @Override
+        protected void onProgressUpdate(Void... values) {}
+    }
+}
+```
+
+The basic idea is to avoid instantiating abstract classes, which are too lengthy code. And the tool to partially accomplish this goal is the new feature brought in Java 8 -- lambda. (In Java 7, we could get lambda support using RetroLambda.)
+
+Basically as long as the abstract class has ***only one abstract method*** it could be shortened like this:
+```Java
+        btn = (Button) findViewById(R.id.button1);
+        btn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                new LongOperation().execute("");
+            }
+        });
+```
+becomes
+```Java
+        btn = (Button) findViewById(R.id.button1);
+        btn.setOnClickListener(view -> new LongOperation().execute(""));
+```
+
+This convertion is available for ```.setOnClickListener``` because the abstract class only needs one function. ***However AsyncTask could not be directly shortened as a simple Lambda*** because it needs 4 functions, all of which are important and cannot be ignored, too.
+
+Therefore we need a new interface similar to ```AsyncTask``` that helps building something similar while enabling developers to use lambdas. And ***the new interface, ```ActionChain``` looks like this:***
+```Java
+public class AsyncTaskActivity extends Activity implements OnClickListener {
+
+    Button btn;
+
+    // create a ActionChain factory using Android API (runOnUiThread) and 2 extra worker threads.
+    ActionChainFactory chainFactory = new ActionChainFactory(uiCode -> runOnUiThread(uiCode), Executors.newFixedThreadPool(2));
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        btn = (Button) findViewById(R.id.button1);
+        btn.setOnClickListener(view -> onBtnClick());
+    }
+
+    void onBtnClick() {
+        // The following code is using ActionChain
+        // The ").xxx" style may look strange but that's the only way to obey most IDEs' indentation rule.
+
+        chainFactory.get(
+        ).uiConsume(obj -> {
+
+            // This is equivalent to onPreExecute
+            // Because we did nothing here, this .uiConsume could be deleted.
+            // But here I write it down so that you could compare the code.
+
+        }).netThen(obj -> {
+
+            // This is equivalent to doInBackground
+
+            for(int i = 0; i < 5; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.interrupted();
+                }
+            }
+            return "Executed";
+        }).uiThen((String result) -> {
+
+            // This is equivalent to onPostExecute
+
+            TextView txt = (TextView) findViewById(R.id.output);
+            txt.setText("Executed"); // txt.setText(result);
+            // might want to change "executed" for the returned string passed
+            // into onPostExecute() but that is upto you
+        }).start();
+    }
+}
+```
+
 #### Example 1:
 
 ```Realm``` database caused some trouble for us because it's required to be run on the same thread and defaults to run on *UI thread*, which might affect user experience. But ```ActionChain``` enables you to restrict ```Realm``` to run only on worker threads, in a simple yet safe way:
