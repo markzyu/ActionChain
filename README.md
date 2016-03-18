@@ -123,11 +123,13 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
                 }
             }
             return "Executed";
-        }).uiThen((String result) -> txt.setText(result)    // equivalent to onPostExecute
+        }).uiConsume((String result) -> txt.setText(result)    // equivalent to onPostExecute
         ).start();
     }
 }
 ```
+
+The different between "xxConsume" and "xxThen" is that "Consume" will not return new values to the chain and set the chain's inner value to "null" but "Then" will return a value and pass that value to inner chain value, so the next "Then" or "Consume" will receive that value as input parameter.
 
 #### Example 1:
 
