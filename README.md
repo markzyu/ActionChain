@@ -66,6 +66,8 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
 The basic idea is to avoid instantiating abstract classes, which are too lengthy code. And the tool to partially accomplish this goal is the new feature brought in Java 8 -- lambda. (In Java 7, we could get lambda support using RetroLambda.)
 
 Basically as long as the abstract class has ***only one abstract method*** it could be shortened like this:
+
+The original code:
 ```Java
         btn = (Button) findViewById(R.id.button1);
         btn.setOnClickListener(new View.OnClickListener()
@@ -77,7 +79,7 @@ Basically as long as the abstract class has ***only one abstract method*** it co
             }
         });
 ```
-becomes
+The simplified code using Java 8 or Retrolambda:
 ```Java
         btn = (Button) findViewById(R.id.button1);
         btn.setOnClickListener(view -> new LongOperation().execute(""));
