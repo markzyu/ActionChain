@@ -36,6 +36,7 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
 
         @Override
         protected String doInBackground(String... params) {
+			// TODO: replace this with real network, blocking actions
             for (int i = 0; i < 5; i++) {
                 try {
                     Thread.sleep(1000);
@@ -113,6 +114,7 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
         chainFactory.get(
         ).uiConsume(obj -> {                                // equivalent to onPreExecute, could be deleted
         }).netThen(obj -> {                                 // equivalent to doInBackground
+			// TODO: replace this with real network, blocking actions
             for(int i = 0; i < 5; i++) {
                 try {
                     Thread.sleep(1000);
