@@ -95,11 +95,13 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
 
     // create a ActionChain factory using Android API (runOnUiThread) and 2 extra worker threads.
     ActionChainFactory chainFactory = new ActionChainFactory(uiCode -> runOnUiThread(uiCode), Executors.newFixedThreadPool(2));
+    TextView txt;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        txt = (TextView) findViewById(R.id.output);
         btn = (Button) findViewById(R.id.button1);
         btn.setOnClickListener(view -> onBtnClick());
     }
@@ -109,16 +111,8 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
         // The ").xxx" style may look strange but that's the only way to obey most IDEs' indentation rule.
 
         chainFactory.get(
-        ).uiConsume(obj -> {
-
-            // This is equivalent to onPreExecute
-            // Because we did nothing here, this .uiConsume could be deleted.
-            // But here I write it down so that you could compare the code.
-
-        }).netThen(obj -> {
-
-            // This is equivalent to doInBackground
-
+        ).uiConsume(obj -> {                                // equivalent to onPreExecute, could be deleted
+        }).netThen(obj -> {                                 // equivalent to doInBackground
             for(int i = 0; i < 5; i++) {
                 try {
                     Thread.sleep(1000);
@@ -127,15 +121,8 @@ public class AsyncTaskActivity extends Activity implements OnClickListener {
                 }
             }
             return "Executed";
-        }).uiThen((String result) -> {
-
-            // This is equivalent to onPostExecute
-
-            TextView txt = (TextView) findViewById(R.id.output);
-            txt.setText("Executed"); // txt.setText(result);
-            // might want to change "executed" for the returned string passed
-            // into onPostExecute() but that is upto you
-        }).start();
+        }).uiThen((String result) -> txt.setText(result)    // equivalent to onPostExecute
+        ).start();
     }
 }
 ```
@@ -287,10 +274,10 @@ Thanks to JitPack, we could all import this library using standard syntax!
 ##### 1. Add the JitPack repository (please edit /build.gradle)
 ```groovy
 allprojects {
-	repositories {
-		...
-		maven { url "https://jitpack.io" }
-	}
+    repositories {
+        ...
+        maven { url "https://jitpack.io" }
+    }
 }
 ```
 ##### 2. Add the dependency (please edit /&lt;module name&gt;/build.gradle)
@@ -302,20 +289,20 @@ dependencies {
 #### For Maven:
 ##### 1. Add the JitPack repository
 ```xml
-	<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 ```
 ##### 2. Add the dependency
 ```xml
-	<dependency>
-	    <groupId>com.github.C4Phone</groupId>
-	    <artifactId>SmartActionChain</artifactId>
-	    <version>v0.3</version>
-	</dependency>
+    <dependency>
+        <groupId>com.github.C4Phone</groupId>
+        <artifactId>SmartActionChain</artifactId>
+        <version>v0.3</version>
+    </dependency>
 ```
 
 
