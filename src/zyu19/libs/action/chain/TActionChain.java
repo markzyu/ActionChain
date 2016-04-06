@@ -171,7 +171,7 @@ public class TActionChain<T> {
      *                directly put into the list returned result
      * @return the object you should return inside the .then()
      */
-    public static Object all(List<Object> objects) {
-        return new DotAll(objects);
+    public static Object all(List<? extends Object> objects) {
+        return new DotAll((List<Object>)objects);
     }
 }
